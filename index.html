@@ -1,0 +1,2021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pierian word maker</title>
+<meta name="description" content="Derive Pierian words from Proto-Indo-European roots through Early Pierian and the five periods of sound change.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2v28' stroke='%232f6a4e' stroke-width='3'/%3E%3Ccircle cx='16' cy='9' r='5' fill='%23efedf1' stroke='%232f6a4e' stroke-width='3'/%3E%3Ccircle cx='16' cy='24' r='6' fill='%232f6a4e'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:ital,wght@0,400;0,700;1,400&family=Gentium+Plus:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #efedf1;
+  --field: #fbfafc;
+  --ink: #2e1a27;
+  --muted: #6b5b66;
+  --rule: #cfc6cd;
+  --vine: #2f6a4e;
+  --vine-pale: #dde9e1;
+  --warn: #8a3b2e;
+  --serif: "Gentium Plus", "Gentium Book Plus", "Charis SIL", "Noto Serif", "Times New Roman", serif;
+  --sans: "Andika", "Noto Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1f1a22;
+    --field: #29232c;
+    --ink: #ece6ee;
+    --muted: #b3a6b0;
+    --rule: #4a404c;
+    --vine: #86c9a6;
+    --vine-pale: #2b3a32;
+    --warn: #e39a8b;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.55;
+}
+a { color: var(--vine); }
+.ipa, .form, .pie, input.root, .serif { font-family: var(--serif); }
+header.site {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 2.25rem 1.5rem 0.5rem;
+}
+header.site h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2rem, 4.4vw, 2.9rem);
+  line-height: 1.1;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+header.site p {
+  margin: 0.6rem 0 0;
+  max-width: 62ch;
+  color: var(--muted);
+}
+main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 4rem;
+  display: grid;
+  grid-template-columns: minmax(290px, 360px) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  main { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+}
+.panel { position: sticky; top: 1rem; }
+@media (max-width: 860px) { .panel { position: static; } }
+
+/* tabs */
+.tabs { display: flex; gap: 0.25rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--rule); }
+.tabs button {
+  font: inherit;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 0.45rem 0.2rem;
+  margin-right: 1rem;
+  margin-bottom: -1px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--vine); }
+
+/* form */
+.field { margin-bottom: 1rem; }
+.field > label, .field > .label { display: block; font-size: 0.92rem; margin-bottom: 0.3rem; }
+.hint { font-size: 0.85rem; color: var(--muted); margin: 0.35rem 0 0; }
+input[type=text], input[type=number], select, textarea {
+  width: 100%;
+  font: inherit;
+  color: var(--ink);
+  background: var(--field);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+}
+input[type=text].root { font-family: var(--serif); font-size: 1.5rem; padding: 0.35rem 0.6rem; }
+textarea { font-family: var(--serif); font-size: 1.05rem; min-height: 11rem; resize: vertical; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--vine);
+  outline-offset: 2px;
+}
+.keys { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.45rem; }
+.keys button {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  min-width: 2.1rem;
+  padding: 0.15rem 0.45rem;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.keys button:hover { border-color: var(--vine); }
+.seg { display: flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.seg label { flex: 1; text-align: center; cursor: pointer; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span { display: block; padding: 0.45rem 0.3rem; background: var(--field); }
+.seg label + label span { border-left: 1px solid var(--rule); }
+.seg input:checked + span { background: var(--vine); color: var(--paper); }
+.seg input:focus-visible + span { outline: 2px solid var(--vine); outline-offset: -4px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+button.go {
+  font: inherit;
+  font-weight: 700;
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.65rem 1rem;
+  color: var(--paper);
+  background: var(--vine);
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+details.help { margin-top: 1.5rem; border-top: 1px solid var(--rule); padding-top: 0.75rem; }
+details.help summary { cursor: pointer; color: var(--muted); }
+details.help p { font-size: 0.92rem; margin: 0.6rem 0; }
+
+/* results */
+.results-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.5rem 1rem; margin-bottom: 0.5rem; }
+.results-head h2 { font-family: var(--serif); font-weight: 400; font-size: 1.35rem; margin: 0; }
+.small-btn {
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--vine);
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+}
+.small-btn:hover { border-color: var(--vine); }
+.message { padding: 0.75rem 1rem; border-left: 3px solid var(--warn); background: var(--field); margin: 0 0 1rem; }
+.message.quiet { border-left-color: var(--rule); color: var(--muted); }
+ol.cands { list-style: none; margin: 0; padding: 0; }
+li.cand {
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr);
+  gap: 0 0.75rem;
+  padding: 1.4rem 0;
+  border-top: 1px solid var(--rule);
+}
+li.cand:first-child { border-top: 0; padding-top: 0.6rem; }
+.rank { font-family: var(--serif); font-size: 1.4rem; color: var(--muted); line-height: 1.5; text-align: right; }
+.formline { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 1rem; }
+.form { font-size: 2rem; line-height: 1.35; }
+.form .ipa { font-size: 0.62em; color: var(--muted); }
+li.best .form { font-size: clamp(2.6rem, 7vw, 4.2rem); line-height: 1.2; }
+.meta { margin: 0.2rem 0 0.6rem; font-size: 0.95rem; }
+.meta .score { color: var(--muted); }
+.badge { display: inline-block; font-size: 0.85rem; padding: 0.05rem 0.5rem; border-radius: 999px; background: var(--vine-pale); color: var(--ink); margin-left: 0.4rem; }
+
+/* the descent */
+ol.chain { list-style: none; margin: 0.4rem 0 0.8rem; padding: 0; }
+ol.chain li .stage { font-size: 0.82rem; color: var(--muted); }
+ol.chain li .ipa { font-size: 1.12rem; }
+ol.chain.inline { display: flex; flex-wrap: wrap; gap: 0.15rem 0; }
+ol.chain.inline li { display: inline-flex; align-items: baseline; gap: 0.3rem; }
+ol.chain.inline li:not(:last-child)::after { content: "›"; color: var(--rule); margin: 0 0.5rem 0 0.2rem; }
+ol.chain.vertical { position: relative; margin-left: 0.35rem; padding-left: 1.4rem; border-left: 2px solid var(--vine); }
+ol.chain.vertical li { position: relative; display: grid; grid-template-columns: 6.8rem minmax(0, 1fr); align-items: baseline; padding: 0.12rem 0; }
+ol.chain.vertical li::before {
+  content: "";
+  position: absolute;
+  left: calc(-1.4rem - 6px);
+  top: 0.72em;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 2px solid var(--vine);
+}
+ol.chain.vertical li:last-child::before { background: var(--vine); }
+ol.chain.vertical li:last-child .ipa { font-size: 1.35rem; }
+@media (prefers-reduced-motion: no-preference) {
+  ol.chain.vertical.fresh li { animation: drop 0.35s ease-out both; }
+}
+@keyframes drop { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+dl.forms { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.15rem 1rem; margin: 0.2rem 0 0.8rem; font-size: 0.95rem; }
+dl.forms dt { color: var(--muted); }
+dl.forms dd { margin: 0; }
+dl.forms dd .ipa { color: var(--muted); }
+ul.notes { margin: 0 0 0.6rem; padding-left: 1.1rem; font-size: 0.93rem; }
+ul.notes li { margin: 0.1rem 0; }
+p.clash { font-size: 0.93rem; margin: 0 0 0.6rem; }
+p.clash strong { font-family: var(--serif); font-weight: 700; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+details.trace { margin: 0.3rem 0 0.6rem; }
+details.trace summary { cursor: pointer; color: var(--vine); font-size: 0.95rem; }
+table.rules { border-collapse: collapse; margin: 0.6rem 0; font-size: 0.92rem; width: 100%; }
+table.rules th { text-align: left; font-weight: 700; font-size: 0.85rem; color: var(--muted); padding: 0.6rem 0 0.2rem; }
+table.rules td { padding: 0.18rem 0.75rem 0.18rem 0; vertical-align: baseline; border-top: 1px solid var(--rule); }
+table.rules td.ipa { font-size: 1.08rem; white-space: nowrap; }
+table.rules td .desc { display: block; color: var(--muted); font-size: 0.85rem; }
+
+/* batch */
+.table-wrap { overflow-x: auto; }
+table.batch { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+table.batch th { text-align: left; font-size: 0.85rem; color: var(--muted); font-weight: 700; padding: 0.3rem 0.8rem 0.3rem 0; border-bottom: 1px solid var(--rule); }
+table.batch td { padding: 0.35rem 0.8rem 0.35rem 0; border-bottom: 1px solid var(--rule); vertical-align: baseline; }
+table.batch td.rom { font-family: var(--serif); font-size: 1.15rem; font-weight: 700; }
+table.batch td.ipa, table.batch td.pie { font-size: 1.05rem; }
+table.batch tr.alt td.rom { font-weight: 400; }
+footer { max-width: 1180px; margin: 0 auto; padding: 0 1.5rem 2rem; color: var(--muted); font-size: 0.85rem; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="site">
+  <h1>Pierian word maker</h1>
+  <p>Give a Proto-Indo-European root and its meaning. The page carries it into Pierian through Early Pierian and the five periods of sound change, then ranks the results by how well they fit the language.</p>
+</header>
+<main>
+  <section class="panel" aria-label="Input">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab-one" aria-selected="true" aria-controls="form-one">One root</button>
+      <button type="button" role="tab" id="tab-many" aria-selected="false" aria-controls="form-many">A list of roots</button>
+    </div>
+
+    <form id="form-one" role="tabpanel" aria-labelledby="tab-one" autocomplete="off">
+      <div class="field">
+        <label for="root">PIE root or word</label>
+        <input class="root" type="text" id="root" name="root" spellcheck="false" autocapitalize="off" placeholder="bʰer-">
+        <div class="keys" id="keys-one" aria-label="Insert a character"></div>
+        <p class="hint">End a bare root with a hyphen to try the stems for its word class. A form without a hyphen is used as typed.</p>
+      </div>
+      <div class="field">
+        <label for="gloss">Meaning</label>
+        <input type="text" id="gloss" name="gloss" placeholder="carry">
+      </div>
+      <div class="field">
+        <span class="label" id="pos-label">Word class</span>
+        <div class="seg" role="radiogroup" aria-labelledby="pos-label">
+          <label><input type="radio" name="pos" value="noun" checked><span>Noun</span></label>
+          <label><input type="radio" name="pos" value="verb"><span>Verb</span></label>
+          <label><input type="radio" name="pos" value="adj"><span>Adjective</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <label for="domain">Domain</label>
+        <select id="domain" name="domain"></select>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="layer">Layer</label>
+          <select id="layer" name="layer">
+            <option value="both">Both layers</option>
+            <option value="hs">Main layer only</option>
+            <option value="ol">Hill layer only</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="top">Results</label>
+          <input type="number" id="top" name="top" min="1" max="12" value="4">
+        </div>
+      </div>
+      <div class="field">
+        <label for="stem">Stem</label>
+        <select id="stem" name="stem">
+          <option value="">Every stem for the word class</option>
+          <option value="o">o-stem, *-os</option>
+          <option value="a">ā-stem, *-eh₂</option>
+          <option value="i">i-stem, *-is</option>
+          <option value="u">u-stem, *-us</option>
+          <option value="n">neuter, *-om</option>
+          <option value="root">root noun, no ending</option>
+          <option value="as-is">exactly as typed</option>
+        </select>
+      </div>
+      <button class="go" type="submit">Derive</button>
+    </form>
+
+    <form id="form-many" role="tabpanel" aria-labelledby="tab-many" autocomplete="off" hidden>
+      <div class="field">
+        <label for="batch">Roots, one per line</label>
+        <textarea id="batch" name="batch" spellcheck="false" placeholder="bʰer-; carry; verb&#10;h₃éwis; sheep; noun; herding&#10;leuk-; light"></textarea>
+        <div class="keys" id="keys-many" aria-label="Insert a character"></div>
+        <p class="hint">Each line gives the root, then optionally the meaning, the word class (noun, verb or adj) and the domain. Separate them with semicolons, tabs or vertical bars.</p>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="layer-many">Layer</label>
+          <select id="layer-many" name="layer-many">
+            <option value="both">Both layers</option>
+            <option value="hs">Main layer only</option>
+            <option value="ol">Hill layer only</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="top-many">Results per root</label>
+          <input type="number" id="top-many" name="top-many" min="1" max="5" value="1">
+        </div>
+      </div>
+      <button class="go" type="submit">Derive all</button>
+    </form>
+
+    <details class="help">
+      <summary>How to type PIE</summary>
+      <p>Use Unicode or plain ASCII: <span class="serif">bʰ</span> or bh, <span class="serif">ḱ</span> or k', <span class="serif">kʷ</span> or kw, <span class="serif">h₁</span> or h1, <span class="serif">r̥</span> or R, <span class="serif">ē</span> or e:. Accents, asterisks and the root sign are ignored. A syllabic resonant between consonants is found on its own, so <span class="serif">mrtos</span> is read as <span class="serif">*mr̥tós</span>.</p>
+      <p>Bare roots end in a hyphen. Nouns then get the endings <span class="serif">*-os -eh₂ -is -om</span> and a root noun, adjectives get <span class="serif">*-os -eh₂</span>, and verbs are thematic, or athematic after a vowel or laryngeal.</p>
+    </details>
+    <details class="help">
+      <summary>How results are ranked</summary>
+      <p>Every root is carried in by both layers of the inherited vocabulary. The hill layer is preferred for kin, the body, herding, animals, landscape, weather and the home, and the main layer for everything else. The domain is guessed from the meaning unless you choose one.</p>
+      <p>A result scores higher when its layer suits the meaning, when its Early Pierian form has about two syllables and no three-consonant cluster, and when it reaches period 5 as a sayable word that does not sound like an older word. Results that sound like a word already in the lexicon are flagged but not marked down. The score is a guide, not a verdict.</p>
+    </details>
+  </section>
+
+  <section id="out" aria-live="polite" aria-label="Results"></section>
+</main>
+<noscript><p class="message" style="max-width:1180px;margin:0 auto 2rem">This page needs JavaScript to derive words.</p></noscript>
+<footer>Everything runs in your browser. Nothing you type is sent anywhere.</footer>
+
+<script>
+/* Pierian derivation core: a line-for-line port of pierian_derive.py and its modules. */
+(function (root) {
+'use strict';
+// ------------------------------------------------------------------ helpers
+const NFC = s => s.normalize('NFC');
+const NFD = s => s.normalize('NFD');
+const COMB = /\p{Mn}/u;
+const isComb = c => COMB.test(c);
+const rep = (s, a, b) => s.split(a).join(b);
+const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+const chars = s => Array.from(s);
+const last = a => a[a.length - 1];
+function lstrip(s, cs) { let i = 0; while (i < s.length && cs.includes(s[i])) i++; return s.slice(i); }
+function rstrip(s, cs) { let j = s.length; while (j > 0 && cs.includes(s[j - 1])) j--; return s.slice(0, j); }
+function strip(s, cs) { return rstrip(lstrip(s, cs), cs); }
+const TIL = '̃', MAC = '̄', DIA = '̈';
+
+// ================================================================== PIE input
+const P_VOW = new Set(['a', 'e', 'i', 'o', 'u', 'ā', 'ē', 'ī', 'ō', 'ū']);
+function pieNormalize(s) {
+  s = lstrip(s.trim(), '*√');
+  s = rep(s, '-', ''); s = rep(s, '*', '');
+  s = NFD(s);
+  s = rep(s, 'ḱ', "k'"); s = rep(s, 'ǵ', "g'");
+  s = rep(s, '́', ''); s = rep(s, '̀', '');
+  s = rep(s, '̯', '');
+  s = NFC(s);
+  const R = [['h₁', 'h1'], ['h₂', 'h2'], ['h₃', 'h3'], ['ʰ', 'h'], ['ʷ', 'w'],
+    ['ḱ', "k'"], ['ǵ', "g'"], ['r̥', 'R'], ['l̥', 'L'], ['m̥', 'M'], ['n̥', 'N'],
+    ['i̯', 'y'], ['u̯', 'w'], ['ḗ', 'ē'], ['ṓ', 'ō'], ['ā́', 'ā']];
+  for (const [a, b] of R) s = rep(s, a, b);
+  s = NFD(s);
+  let out = '';
+  for (const c of s) {
+    if (c === '̥' && out) out = out.slice(0, -1) + out.slice(-1).toUpperCase();
+    else out += c;
+  }
+  s = NFC(out);
+  const LV = { a: 'ā', e: 'ē', i: 'ī', o: 'ō', u: 'ū' };
+  for (const v of 'aeiou') s = rep(s, v + ':', LV[v]);
+  return s;
+}
+function pieTokenize(s) {
+  s = pieNormalize(s);
+  const toks = []; let i = 0;
+  while (i < s.length) {
+    const c = s[i], three = s.slice(i, i + 3), two = s.slice(i, i + 2);
+    if (three === "g'h" || three === 'gwh') { toks.push(three); i += 3; continue; }
+    if (['bh', 'dh', 'gh'].includes(two) && ['1', '2', '3'].includes(s.slice(i + 2, i + 3))) { toks.push(c); i += 1; continue; }
+    if (['h1', 'h2', 'h3', 'bh', 'dh', 'gh', "k'", "g'", 'kw', 'gw'].includes(two)) { toks.push(two); i += 2; continue; }
+    if (c === 'h') { toks.push('H'); i += 1; continue; }
+    toks.push(c); i += 1;
+  }
+  const isV = t => P_VOW.has(t) || ['R', 'L', 'M', 'N'].includes(t);
+  const out = toks.slice();
+  for (let k = out.length - 1; k >= 0; k--) {
+    const t = out[k];
+    if (['r', 'l', 'm', 'n'].includes(t)) {
+      const pv = k > 0 ? out[k - 1] : null;
+      const nx = k + 1 < out.length ? out[k + 1] : null;
+      if (!(pv && isV(pv)) && !(nx && isV(nx)) && (pv !== null || nx !== null)) out[k] = t.toUpperCase();
+    }
+  }
+  return out;
+}
+
+// ================================================================== main layer, early period
+const H_SHORT = new Set(['a', 'e', 'i', 'o', 'u']);
+const H_MKLONG = { a: 'ā', e: 'ē', i: 'ī', o: 'ō', u: 'ū' };
+const H_DIPHS = new Set(['ai', 'ei', 'oi', 'au', 'ou', 'eu', 'ea', 'ao', 'uo', 'āi', 'ōi', 'ūi', 'īi']);
+const H_STOPS_VL = new Set(['p', 't', 'k']);
+const H_STOPS = new Set(['p', 't', 'k', 'b', 'd', 'g']);
+const H_FRIC = new Set(['s', 'v', 'ð', 'ɣ', 'z', 'h', 'f', 'θ', 'x']);
+const H_OBSTR = new Set([...H_STOPS, ...H_FRIC]);
+const H_LIQ = new Set(['r', 'l']);
+const H_NAS = new Set(['m', 'n']);
+const H_LENITE = { p: 'v', t: 'ð', k: 'ɣ', b: 'v', d: 'ð', g: 'ɣ' };
+const hbase = s => chars(NFD(s)).filter(c => !isComb(c)).join('');
+const hisV = s => { if (!s) return false; const b = hbase(s); return H_SHORT.has(b[0]); };
+const hisNasal = s => NFD(s).includes(TIL);
+const hnasalize = s => hisNasal(s) ? s : NFC(s + TIL);
+const hshow = w => NFC(w.join(''));
+const hnuclei = w => { const r = []; w.forEach((s, i) => { if (hisV(s)) r.push(i); }); return r; };
+
+function mainTokens(word) {
+  let w = NFC(rep(strip(word, '*-'), "'", '').toLowerCase());
+  w = NFC(chars(NFD(w)).filter(c => c !== '́' && c !== '̀').join(''));
+  const out = []; let i = 0;
+  while (i < w.length) {
+    const c = w[i], two = w.slice(i, i + 2);
+    if (H_DIPHS.has(two) && !['ea', 'ao', 'uo'].includes(two)) {
+      if (i + 2 < w.length && hisV(w[i + 2]) && 'iu'.includes(two[1])) { out.push(c); i += 1; continue; }
+      out.push(two); i += 2; continue;
+    }
+    if (c === 'y') { out.push('y'); i += 1; continue; }
+    out.push(c); i += 1;
+  }
+  return out;
+}
+
+function mainStep1(segs, centum, verb, numeral) {
+  let w = segs.slice();
+  const VV = ['a', 'e', 'i', 'o', 'u', 'ā', 'ē', 'ī', 'ō', 'ū'];
+  const V = s => VV.includes(s);
+  const HL = ['h1', 'h2', 'h3', 'H'];
+  let out = []; let i = 0;
+  while (i < w.length) {
+    const s = w[i]; const nx = i + 1 < w.length ? w[i + 1] : null; const pv = out.length ? last(out) : null;
+    if (HL.includes(s) && nx === 'e') { out.push({ h1: 'e', h2: 'a', h3: 'o', H: 'a' }[s]); i += 2; continue; }
+    if (HL.includes(s) && ['e', 'o', 'a'].includes(pv)) {
+      if (pv === 'e') out[out.length - 1] = { h1: 'ē', h2: 'ā', h3: 'ō', H: 'ā' }[s];
+      else if (pv === 'o') out[out.length - 1] = { h1: 'ō', h2: 'ā', h3: 'ō', H: 'ō' }[s];
+      else out[out.length - 1] = 'ā';
+      i += 1; continue;
+    }
+    if (HL.includes(s) && ['i', 'u'].includes(pv)) { out[out.length - 1] = H_MKLONG[pv]; i += 1; continue; }
+    out.push(s); i += 1;
+  }
+  w = out;
+  out = [];
+  for (let k = 0; k < w.length; k++) {
+    const s = w[k];
+    if (HL.includes(s)) {
+      const prev = out.length ? last(out) : null; const nxt = k + 1 < w.length ? w[k + 1] : null;
+      if (k === 0 && nxt && !V(nxt)) { if (s === 'h2' || s === 'H') out.push('a'); else if (s === 'h3') out.push('o'); continue; }
+      if ((s === 'h2' || s === 'H') && prev && !V(prev) && nxt && !V(nxt)) { out.push('ā'); continue; }
+      continue;
+    }
+    out.push(s);
+  }
+  w = out;
+  let w2 = [];
+  for (const s of w) {
+    if (['R', 'L', 'M', 'N'].includes(s)) {
+      const plain = { R: 'r', L: 'l', M: 'm', N: 'n' }[s];
+      if (w2.length && V(last(w2))) w2.push(plain); else w2.push('a', plain);
+    } else w2.push(s);
+  }
+  w = w2;
+  const cent = centum || numeral;
+  for (let k = 0; k < w.length; k++) {
+    const s = w[k]; const nxt = k + 1 < w.length ? w[k + 1] : null;
+    if (s === "k'") w[k] = (cent || nxt === 'm') ? 'k' : 's';
+    else if (s === "g'" || s === "g'h") w[k] = cent ? 'g' : 'z';
+  }
+  for (let k = 0; k < w.length; k++) {
+    const s = w[k]; const nxt = k + 1 < w.length ? w[k + 1] : null;
+    if (s === 'kw') w[k] = 'k';
+    else if (s === 'gw' || s === 'gwh') w[k] = nxt === 'ī' ? 'b' : 'g';
+  }
+  for (let k = 0; k < w.length; k++) {
+    const s = w[k];
+    if (['bh', 'dh', 'gh'].includes(s)) w[k] = (s === 'bh' && k > 0 && w[k - 1] === 'r') ? 'p' : s[0];
+  }
+  const C = s => s !== null && s !== undefined && !V(s) && s !== 'y' && s !== 'w';
+  for (let k = 0; k < w.length; k++) {
+    if (w[k] === 'o' && k > 0 && k + 2 < w.length + 1) {
+      const a = k + 1 < w.length ? w[k + 1] : null; const b = k + 2 < w.length ? w[k + 2] : null;
+      if (C(a) && C(b)) w[k] = 'a';
+    }
+  }
+  out = []; i = 0;
+  while (i < w.length) {
+    const s = w[i]; const nx = i + 1 < w.length ? w[i + 1] : null; const nn = i + 2 < w.length ? w[i + 2] : null;
+    if (['a', 'e', 'o', 'ā'].includes(s) && (nx === 'y' || nx === 'w') && (nn === null || !V(nn))) {
+      const b0 = s === 'ā' ? 'a' : s; out.push(b0 + (nx === 'y' ? 'i' : 'u')); i += 2; continue;
+    }
+    out.push(s); i += 1;
+  }
+  w = out;
+  out = []; i = 0;
+  while (i < w.length) {
+    const s = w[i], nx = i + 1 < w.length ? w[i + 1] : null;
+    if (s === 's' && nx === 'r') { out.push('s', 't', 'r'); i += 2; continue; }
+    if (s === 'w' && nx === 'r') { out.push('b', 'r'); i += 2; continue; }
+    if ((s === 'd' || s === 't') && nx === 't') { out.push('s', 't'); i += 2; continue; }
+    if (s === 'l' && nx === 'n') { out.push('l', 'l'); i += 2; continue; }
+    if (s === 'd' && nx === 'w' && !numeral) { out.push('d'); i += 2; continue; }
+    if (s === 'd' && nx === 'y') { out.push('z'); i += 2; continue; }
+    if (s === 't' && nx === 'y') { out.push('s'); i += 2; continue; }
+    if (['k', 'g', 'p'].includes(s) && nx === 's') { out.push('s'); i += 2; continue; }
+    out.push(s); i += 1;
+  }
+  w = out;
+  if (verb) {
+    for (let k = 1; k < w.length - 1; k++) {
+      const p = w[k - 1];
+      if (w[k] === 's' && V(p ? p[p.length - 1] : '') && hisV(w[k + 1])) w[k] = 'z';
+    }
+  }
+  for (let k = 1; k < w.length; k++) {
+    if (w[k] === 'w' && (w[k - 1] === 'z' || (w[k - 1] === 's' && k > 1 && hisV(w[k - 2])))) w[k] = 'b';
+  }
+  out = []; i = 0;
+  while (i < w.length) {
+    if (w[i] === 'u' && i + 2 < w.length && w[i + 1] === 'e' && w[i + 2] === 'l') { out.push('u', 'l'); i += 3; continue; }
+    out.push(w[i]); i += 1;
+  }
+  w = out;
+  if (w.length >= 2 && w[w.length - 2] === 'o' && w[w.length - 1] === 'm') w[w.length - 1] = 'n';
+  if (w.length >= 2 && last(w) === 't' && ['m', 'n'].includes(w[w.length - 2])) w.pop();
+  for (let k = 1; k < w.length - 1; k++) {
+    if (w[k] === 'y' && V(w[k - 1]) && hisV(w[k + 1])) w[k] = 'i';
+  }
+  return w;
+}
+
+function mainStep2(win, verbVowelRoot, trace) {
+  let w = win.slice();
+  const log = trace ? (name => trace.push([name, hshow(w)])) : (() => {});
+  if (w.length) {
+    if (w[0] === 'p' && w.length > 1 && w[1] === 's') w = w.slice(1);
+    const first = w[0]; const nxt = w.length > 1 ? w[1] : null;
+    const shift = { p: 'b', t: 'd', k: 'g', b: 'm', d: 'n' };
+    if (first === 's') {
+      if (nxt !== null && H_STOPS_VL.has(nxt)) w = w.slice(1);
+      else if (nxt === null || hisV(nxt) || H_LIQ.has(nxt)) w[0] = 'h';
+      else w[0] = 'z';
+    } else if (has(shift, first) && !(first === 'd' && nxt === 'w')) w[0] = shift[first];
+  }
+  log('II onsets');
+  const chain = { 'ā': 'ō', 'ō': 'ū', 'ē': 'ī' };
+  w = w.map(s => has(chain, s) ? chain[s] : s);
+  w = w.map(s => s === 'āi' ? 'ōi' : s);
+  log('III long vowels');
+  let out = [];
+  for (let i = 0; i < w.length; i++) {
+    const s = w[i]; const nx = i + 1 < w.length ? w[i + 1] : null;
+    if (s === 'w') out.push('v');
+    else if (['au', 'eu', 'ou'].includes(s) && nx !== null && hisV(nx)) out.push(s[0], 'v');
+    else if (s === 'u' && nx !== null && hisV(nx) && i > 0 && hisV(w[i - 1])) out.push('v');
+    else out.push(s);
+  }
+  w = out;
+  log('IV w>v');
+  out = w.slice();
+  for (let i = 0; i < w.length; i++) {
+    const s = w[i];
+    if (has(H_LENITE, s) && i > 0) {
+      const pv = w[i - 1]; const nx = i + 1 < w.length ? w[i + 1] : null;
+      if ((hisV(pv) || pv === 'y') && !(nx !== null && H_OBSTR.has(nx) && nx !== 'v')) out[i] = H_LENITE[s];
+    }
+  }
+  w = out;
+  log('V lenition');
+  out = []; let i = 0;
+  while (i < w.length) {
+    const s = w[i]; const nx = i + 1 < w.length ? w[i + 1] : null; const nn = i + 2 < w.length ? w[i + 2] : null;
+    if (hisV(s) && nx !== null && H_NAS.has(nx) && nn !== null && H_STOPS_VL.has(nn)) { out.push(hnasalize(s)); i += 2; continue; }
+    if (H_STOPS.has(s) && (nx === 's' || nx === 'z')) { i += 1; continue; }
+    out.push(s); i += 1;
+  }
+  w = out;
+  for (let k = 0; k < w.length - 1; k++) {
+    if (['b', 'd', 'g', 'v', 'ð', 'ɣ', 'z'].includes(w[k]) && H_STOPS_VL.has(w[k + 1])) w[k + 1] = { p: 'b', t: 'd', k: 'g' }[w[k + 1]];
+  }
+  log('Va clusters');
+  for (let k = 0; k < w.length - 1; k++) {
+    if (w[k] === 's' && ['b', 'd', 'g', 'v', 'ð', 'ɣ', 'm', 'n', 'l', 'r', 'z'].includes(w[k + 1])) w[k] = 'z';
+  }
+  log('Vb s>z');
+  const BRK = { a: 'ao', e: 'ea', o: 'uo' };
+  const n = hnuclei(w);
+  const eligible = k => {
+    const s = w[k];
+    if (!has(BRK, s)) return false;
+    if (k === 0) return false;
+    if (w[k - 1] === 'v' || w[k - 1] === 'ɣ') return false;
+    const nx = k + 1 < w.length ? w[k + 1] : null; const nn = k + 2 < w.length ? w[k + 2] : null;
+    if (nx === null) return true;
+    if (hisV(nx)) return true;
+    if (nn !== null && hisV(nn)) return true;
+    if (H_LIQ.has(nx) && nn !== null && !hisV(nn)) return true;
+    return false;
+  };
+  if (n.length) {
+    const cands = [n.length >= 2 ? n[n.length - 2] : n[0]];
+    if (n.length >= 4) cands.push(n[n.length - 3]);
+    for (const c of cands) { if (eligible(c)) { w[c] = BRK[w[c]]; break; } }
+  }
+  log('VI breaking');
+  out = []; i = 0;
+  while (i < w.length) {
+    const s = w[i]; const nx = i + 1 < w.length ? w[i + 1] : null; const nn = i + 2 < w.length ? w[i + 2] : null;
+    if (hisV(s) && hbase(s).length === 1 && nx !== null && H_NAS.has(nx) && (nn === null || !hisV(nn))) { out.push(hnasalize(s)); i += 2; continue; }
+    out.push(s); i += 1;
+  }
+  w = out;
+  log('VII nasal');
+  const tail = hshow(w);
+  if (tail.endsWith('eus')) {
+    w = w[w.length - 2] === 'eu' ? [...w.slice(0, -2), 'au'] : w;
+    w = hshow(w).endsWith('eus') ? mainTokens(hshow(w).slice(0, -3) + 'eau') : w;
+  }
+  if (w.length >= 2 && ['s', 'z'].includes(last(w)) && ['o', 'u'].includes(w[w.length - 2])) w = [...w.slice(0, -2), 'u'];
+  else if (w.length >= 2 && ['s', 'z'].includes(last(w)) && w[w.length - 2] === 'i') w = w.slice(0, -1);
+  if (w.length && ['oi', 'ōi', 'ūi'].includes(last(w))) w[w.length - 1] = 'ū';
+  else if (w.length && ['ei', 'īi'].includes(last(w))) w[w.length - 1] = 'ī';
+  if (w.length && last(w) === 'e' && hnuclei(w).length > 1) w = w.slice(0, -1);
+  if (w.length >= 2 && last(w) === 'i' && ['t', 'd', 'ð', 'z', 'n', 'm'].includes(w[w.length - 2])) w[w.length - 1] = 'ī';
+  log('VIII finals');
+  if (w.length && last(w) === 's') w[w.length - 1] = 'z';
+  if (w.length > 1 && w[0] === 'z' && w[1] === 'b') w[1] = 'v';
+  if (w.length > 2 && w[0] === 'z' && w[1] === 't' && w[2] === 'r') w[1] = 'd';
+  out = [];
+  for (const s of w) {
+    if (out.length && last(out) === s && s === 'o') { out[out.length - 1] = 'ō'; continue; }
+    if (out.length && last(out) === s && s === 'u') { out[out.length - 1] = 'ū'; continue; }
+    out.push(s);
+  }
+  w = out;
+  for (let k = 0; k < w.length; k++) {
+    if (w[k] === 's') { const nx = k + 1 < w.length ? w[k + 1] : null; if (nx === null || !H_STOPS_VL.has(nx)) w[k] = 'z'; }
+  }
+  out = [];
+  for (const s of w) {
+    if (out.length && last(out) === s && ['z', 'v', 'ð', 'l', 'r', 'n', 'm', 't', 'd', 'k', 'g', 'p', 'b'].includes(s)) continue;
+    out.push(s);
+  }
+  w = out;
+  if (verbVowelRoot && w.length && hisV(last(w))) w.push('ð');
+  log('IX-XI');
+  return w;
+}
+
+// ================================================================== hill layer, early period
+const O_VL = new Set(chars('aeiouəāēīōū'));
+const O_DIPH = new Set(['ei', 'ou', 'au', 'ea', 'iu', 'ai', 'oi']);
+const FRONT_TRIG = new Set(['i', 'ī', 'e', 'ē', 'ei', 'ie', 'iu']);
+const obase = s => chars(NFD(s)).filter(c => !isComb(c)).join('');
+const omk = (s, k) => Object.assign({ s, st: false, fortis: false, red: false }, k || {});
+const oisV = seg => !!seg && O_VL.has(obase(seg.s).slice(0, 1));
+const oLong = s => NFD(s).includes(MAC);
+const oNas = s => NFD(s).includes(TIL);
+const oshow = w => NFC(w.map(x => x.s).join(''));
+
+function hillTokens(word) {
+  const w = NFC(strip(word.toLowerCase(), '*-'));
+  const out = []; let i = 0;
+  while (i < w.length) {
+    const c = w[i];
+    if ('td'.includes(c) && ['tʃ', 'dʒ'].includes(w.slice(i, i + 2))) { out.push(omk(w.slice(i, i + 2))); i += 2; continue; }
+    if (O_DIPH.has(w.slice(i, i + 2))) { out.push(omk(w.slice(i, i + 2))); i += 2; continue; }
+    if (c === 'y') { out.push(omk('j')); i += 1; continue; }
+    out.push(omk(c)); i += 1;
+  }
+  return out;
+}
+function oSyllables(w) {
+  const v = []; w.forEach((x, i) => { if (oisV(x)) v.push(i); });
+  const res = [];
+  for (let n = 0; n < v.length; n++) {
+    const i = v[n]; const nxt = n + 1 < v.length ? v[n + 1] : w.length; const cons = nxt - i - 1;
+    const final = n === v.length - 1; const s = w[i].s; let wt;
+    if (oLong(s)) wt = 4;
+    else if (obase(s).length > 1 || oNas(s)) wt = 3;
+    else if ((!final && cons >= 2) || (final && cons >= 1)) wt = 2;
+    else wt = 1;
+    if (final && wt === 2) wt = 1;
+    res.push([i, wt]);
+  }
+  return res;
+}
+function oAssignStress(w) {
+  const syl = oSyllables(w);
+  if (!syl.length) return;
+  for (const x of w) x.st = false;
+  let cand = syl;
+  if (syl.length > 1 && obase(w[last(syl)[0]].s) === 'u' && last(syl)[0] >= w.length - 1) cand = syl.slice(0, -1);
+  const best = Math.max(...cand.map(c => c[1]));
+  const i = cand.find(c => c[1] === best)[0];
+  w[i].st = true;
+}
+function hillStep2(win, trace) {
+  let w = win.map(x => Object.assign({}, x));
+  const log = trace ? (n => trace.push([n, oshow(w)])) : (() => {});
+  if (w.length > 1 && w[0].s === 't' && oisV(w[1])) w = w.slice(1);
+  log('1 t-drop');
+  let out = [];
+  for (const x of w) {
+    if (out.length && last(out).s === x.s && 'ptkbdg'.includes(x.s)) { last(out).fortis = true; continue; }
+    out.push(x);
+  }
+  w = out;
+  oAssignStress(w);
+  const v = []; w.forEach((x, i) => { if (oisV(x)) v.push(i); });
+  const PAL_F = { 'θ': 'ʃ', x: 'ʃ', 'ð': 'ʒ', 'ɣ': 'ʒ' };
+  for (let i = 0; i < w.length - 1; i++) {
+    if (has(PAL_F, w[i].s) && (FRONT_TRIG.has(w[i + 1].s) || w[i + 1].s === 'j')) w[i].s = PAL_F[w[i].s];
+  }
+  if (v.length) {
+    const lv = last(v); const after = w.slice(lv + 1);
+    if (!w[lv].st && (!after.length || (after.length === 1 && 'nm'.includes(after[0].s))
+      || (after.length === 2 && 'nm'.includes(after[0].s) && 'pt'.includes(after[1].s)))) { w[lv].s = 'ə'; w[lv].red = true; }
+    for (const i of v) {
+      const s = w[i].s;
+      if (w[i].red || w[i].st) continue;
+      if (i === last(v) && i === w.length - 1) continue;
+      if (oLong(s) || obase(s).length > 1) w[i].s = obase(s)[0];
+    }
+  }
+  log('3 reduction');
+  const PAL_S = { t: 'tʃ', k: 'tʃ', d: 'dʒ', g: 'dʒ' };
+  for (let i = 0; i < w.length - 1; i++) {
+    const nx = w[i + 1].s;
+    if (has(PAL_S, w[i].s) && (FRONT_TRIG.has(nx) || nx === 'j')) w[i].s = PAL_S[w[i].s];
+    else if ((w[i].s === 'n' || w[i].s === 'l') && ['i', 'ī', 'iu'].includes(nx)) w[i].s = { n: 'ɲ', l: 'ʎ' }[w[i].s];
+  }
+  log('4 palatalization');
+  for (const x of w) { if (x.s === 'tʃ') x.s = 'ʃ'; else if (x.s === 'dʒ') x.s = 'ʒ'; }
+  for (const x of w) { if (['f', 'θ', 'x', 'ʃ'].includes(x.s)) x.s = 'h'; }
+  log('5-6 deaffrication, h');
+  if (w.length && w[0].s === 'h' && w.length > 1 && oisV(w[1])) w = w.slice(1);
+  let i = 1;
+  while (i < w.length - 1) {
+    const a = w[i - 1], x = w[i], b = w[i + 1];
+    if (oisV(a) && oisV(b)) {
+      if (['h', 'ð', 'j'].includes(x.s)) {
+        if (x.s === 'h' && b.red && i + 1 === w.length - 1) { i += 1; continue; }
+        w.splice(i, 1); continue;
+      }
+      if (x.s === 'v') x.s = 'w';
+      else if (x.s === 'g') x.s = ('ie'.includes(obase(a.s).slice(-1)) && 'ie'.includes(obase(b.s)[0])) ? 'j' : 'w';
+    }
+    i += 1;
+  }
+  out = [];
+  for (const x of w) {
+    if (out.length && oisV(last(out)) && oisV(x) && last(out).s === x.s && obase(x.s).length === 1 && !oLong(x.s)) {
+      last(out).st = last(out).st || x.st; continue;
+    }
+    out.push(x);
+  }
+  w = out;
+  out = [];
+  for (const x of w) {
+    if (out.length && oisV(last(out)) && last(out).st && obase(last(out).s) === 'ea' && oisV(x) && ['e', 'a'].includes(obase(x.s)) && !x.st) {
+      last(out).s = 'eā'; continue;
+    }
+    out.push(x);
+  }
+  w = out;
+  if (w.length >= 3 && obase(w[w.length - 2].s) === 'u' && !w[w.length - 2].st && ['r', 'l'].includes(last(w).s)
+    && (oisV(w[w.length - 3]) || ['w', 'j'].includes(w[w.length - 3].s))) w.splice(w.length - 2, 1);
+  log('7 lenition I');
+  i = 0;
+  while (i < w.length - 1) {
+    if (oisV(w[i]) && ['n', 'm'].includes(w[i + 1].s)) {
+      const nn = i + 2 < w.length ? w[i + 2].s : null;
+      if (nn === null || (!O_VL.has(nn) && !['n', 'm', 'l', 'r', 'w', 'j'].includes(nn) && !oisV(w[i + 2]))) {
+        w[i].s = NFC(w[i].s + TIL); w[i].nas_from = w[i + 1].s; w[i].new = true;
+        w.splice(i + 1, 1); continue;
+      }
+    }
+    i += 1;
+  }
+  log('8 nasalization');
+  if (w.length && obase(last(w).s) === 'ə') {
+    const nasal = oNas(last(w).s);
+    const prev = w.length > 1 ? w[w.length - 2] : null;
+    const prev2 = w.length > 2 ? w[w.length - 3] : null;
+    const SONS = ['r', 'l', 'n', 'm', 'w', 'j', 'ɲ', 'ʎ'];
+    const HOMORG = { n: 'tdn', m: 'pbm' };
+    if (nasal) { last(w).s = 'ã'; last(w).new = true; }
+    else if (prev === null) { /* nothing */ }
+    else if ('ptkbdg'.includes(prev.s) && prev2 !== null && oNas(prev2.s)) {
+      const key = has(prev2, 'nas_from') ? prev2.nas_from : 'n';
+      const hs = has(HOMORG, key) ? HOMORG[key] : '';
+      w = hs.includes(prev.s) ? w.slice(0, -2) : w.slice(0, -1);
+    }
+    else if ('ptkbdg'.includes(prev.s) && (prev.fortis || (prev2 && SONS.includes(prev2.s)))) w = w.slice(0, -2);
+    else if (prev.s === 'h') w = w.slice(0, -2);
+    else if (oisV(prev)) w = w.slice(0, -1);
+    else if (prev.s === 'j' && prev2 !== null && !oisV(prev2)) { last(w).s = 'a'; last(w).new = true; }
+    else if (SONS.includes(prev.s)) w = w.slice(0, -1);
+    else { last(w).s = 'a'; last(w).new = true; }
+  }
+  log('9 apocope');
+  const nv = w.filter(oisV).length;
+  if (w.length && ['p', 't', 'k', 'd'].includes(last(w).s)) {
+    const pv = w.length > 1 ? w[w.length - 2].s : '';
+    if (pv === 'r') { /* keep */ }
+    else if (oNas(pv)) { /* keep */ }
+    else if (nv === 1 || pv === 'n' || pv === 'm') w = w.slice(0, -1);
+  }
+  log('10 final stops');
+  for (const x of w) { if (x.s === 'r') x.s = 'ʁ'; }
+  for (let k = 0; k < w.length; k++) {
+    if (w[k].s === 'l' && (k === w.length - 1 || !oisV(w[k + 1]))) w[k].s = 'w';
+  }
+  log('11-12 ʁ, l>w');
+  for (let k = 0; k < w.length; k++) {
+    const x = w[k];
+    if (obase(x.s) === 'ea' && x.st) x.s = x.s === 'eā' ? 'iā' : 'ia';
+    else if (obase(x.s) === 'iu') {
+      const coda = k + 1 < w.length && !oisV(w[k + 1]);
+      if (coda) x.s = 'ia' + (oNas(x.s) ? TIL : '');
+      else if (x.st && w.filter(oisV).length === 1) x.s = 'ü';
+    }
+  }
+  log('13 diphthongs');
+  i = 1;
+  while (i < w.length - 1) {
+    if (oisV(w[i - 1]) && oisV(w[i + 1]) && !w[i].fortis && (w[i - 1].new || w[i + 1].new)) {
+      const s = w[i].s;
+      if (s === 'p') w[i].s = 'b';
+      else if (s === 'b') w[i].s = 'w';
+      else if (s === 't' || s === 'k') { w.splice(i, 1); continue; }
+    }
+    i += 1;
+  }
+  out = [];
+  for (const x of w) {
+    if (out.length && oisV(last(out)) && oisV(x) && obase(last(out).s).slice(-1) === obase(x.s) && obase(x.s) === 'a') {
+      last(out).s = last(out).s.slice(0, -1) + 'ā'; continue;
+    }
+    out.push(x);
+  }
+  w = out;
+  log('14 lenition II');
+  i = 1;
+  while (i < w.length) {
+    if (oisV(w[i - 1]) && oisV(w[i]) && oLong(w[i].s) && !oNas(w[i].s)) {
+      const g = 'ie'.includes(obase(w[i - 1].s).slice(-1)) ? 'j' : 'w';
+      w.splice(i, 0, omk(g)); i += 2; continue;
+    }
+    i += 1;
+  }
+  out = [];
+  for (const x of w) {
+    if (out.length && last(out).s === x.s && (x.s === 'w' || x.s === 'j')) continue;
+    out.push(x);
+  }
+  w = out;
+  for (const x of w) { if (obase(x.s) === 'ə') x.s = oNas(x.s) ? 'ã' : 'a'; }
+  log('15 hiatus');
+  return w;
+}
+const hillSpell = w => rep(oshow(w), 'j', 'y');
+
+function hillStep1(toks) {
+  const HL = ['h1', 'h2', 'h3', 'H'];
+  let w = toks.slice(); let out = []; let i = 0;
+  while (i < w.length) {
+    const t = w[i]; const nx = i + 1 < w.length ? w[i + 1] : null; const pv = out.length ? last(out) : null;
+    if (HL.includes(t)) {
+      if (i === 0) {
+        if (t === 'h1') {
+          out.push('i');
+          if (nx === 'e' || nx === 'o') { i += 2; out[out.length - 1] = nx === 'e' ? 'i' : 'u'; continue; }
+        } else {
+          if (nx === 'R' || nx === 'L') out.push('a');
+          else { out.push('u'); if (['e', 'o', 'a'].includes(nx)) { i += 2; continue; } }
+        }
+        i += 1; continue;
+      }
+      if (['e', 'o', 'a'].includes(pv)) {
+        out[out.length - 1] = { e: { h1: 'ē', h2: 'ā', h3: 'ō', H: 'ā' }[t], o: 'ō', a: 'ā' }[pv];
+        i += 1; continue;
+      }
+      if (pv === 'i' || pv === 'u') { out[out.length - 1] = { i: 'ī', u: 'ū' }[pv]; i += 1; continue; }
+      if (['R', 'L', 'M', 'N'].includes(pv)) { i += 1; continue; }
+      out.push('u'); i += 1; continue;
+    }
+    out.push(t); i += 1;
+  }
+  w = out;
+  let w2 = [];
+  for (const t of w) { if (['R', 'L', 'M', 'N'].includes(t)) w2.push('u', t.toLowerCase()); else w2.push(t); }
+  w = w2;
+  const MAP = { "k'": "k'", "g'": 'ʒ', "g'h": 'ʒ', kw: 'p', gw: 'b', gwh: 'v', bh: 'v', dh: 'ð', gh: 'ɣ' };
+  w = w.map(t => has(MAP, t) ? MAP[t] : t).filter(t => t !== '');
+  w2 = [];
+  for (let k = 0; k < w.length; k++) {
+    const t = w[k];
+    if (t === 'p' && k + 1 < w.length && w[k + 1] === 't' && k > 0 && ['o', 'u', 'e', 'i', 'a'].includes(w[k - 1])) {
+      if (k + 2 >= w.length || w[k + 2] === 's') continue;
+    }
+    w2.push(t);
+  }
+  w = w2;
+  const vow = t => ['a', 'e', 'i', 'o', 'u', 'ā', 'ē', 'ī', 'ō', 'ū'].includes(t);
+  const SP = { p: 'f', t: 'θ', k: 'x' };
+  for (let k = 1; k < w.length - 1; k++) {
+    if (has(SP, w[k]) && (vow(w[k - 1]) || w[k - 1] === 'w' || w[k - 1] === 'y') && vow(w[k + 1])) w[k] = SP[w[k]];
+  }
+  w = w.filter(t => t !== 's' && t !== "k'");
+  w = w.map((t, k) => (t === 'd' && k + 1 < w.length && w[k + 1] === 't') ? 't' : t);
+  const VM = { e: 'i', o: 'u', 'ē': 'ei', 'ō': 'ou', 'ā': 'ea' };
+  w = w.map(t => has(VM, t) ? VM[t] : t);
+  if (w.length && last(w) === 'm') w[w.length - 1] = 'n';
+  let s = w.join('');
+  while (s.includes('uu')) s = rep(s, 'uu', 'u');
+  return s;
+}
+
+// ================================================================== Early Pierian and periods 1-5
+const E_VL = new Set(chars('aeiouyɛɔøœəɐ'));
+const E_DIPH = new Set(['ea', 'ao', 'uo', 'ai', 'au', 'oi', 'ou', 'ei', 'ia', 'eu']);
+const TONE_MARK = { H: '́', F: '̂', L: '̀', R: '̌', LF: '̏' };
+const ebase = s => chars(s).filter(c => c !== TIL && c !== 'ː' && !isComb(c)).join('');
+const eisV = seg => { const b = ebase(seg.s); return b.length > 0 && E_VL.has(b[0]); };
+const isLong = s => s.includes('ː');
+const isNas = s => s.includes(TIL);
+const mk = (s, st, m, cl) => ({ s, st: !!st, m: m || 0, cl: !!cl, tone: null });
+
+function etokenize(word) {
+  const w = rep(rep(NFD(word), 'y', 'j'), 'u' + DIA, 'y');
+  const segs = []; let m = 0, cl = false;
+  const cs = chars(w); const units = []; let i = 0;
+  while (i < cs.length) {
+    const c = cs[i];
+    if ('.-='.includes(c)) { units.push(c); i += 1; continue; }
+    let marks = ''; let j = i + 1;
+    while (j < cs.length && isComb(cs[j])) { marks += cs[j]; j += 1; }
+    units.push([c, marks]); i = j;
+  }
+  let k = 0;
+  while (k < units.length) {
+    const u = units[k];
+    if (u === '.') { k += 1; continue; }
+    if (u === '-') { m += 1; k += 1; continue; }
+    if (u === '=') { m += 1; cl = true; k += 1; continue; }
+    const [c, marks] = u;
+    if (E_VL.has(c)) {
+      if (!marks && k + 1 < units.length && Array.isArray(units[k + 1]) && E_VL.has(units[k + 1][0]) && !units[k + 1][1]
+        && E_DIPH.has(c + units[k + 1][0])) { segs.push(mk(c + units[k + 1][0], false, m, cl)); k += 2; continue; }
+      const s = c + (marks.includes(TIL) ? TIL : '') + (marks.includes(MAC) ? 'ː' : '');
+      segs.push(mk(s, false, m, cl)); k += 1; continue;
+    }
+    segs.push(mk(c, false, m, cl)); k += 1;
+  }
+  return segs;
+}
+const vidx = (w, hostOnly) => { const r = []; w.forEach((s, i) => { if (eisV(s) && (!hostOnly || !s.cl)) r.push(i); }); return r; };
+const clearStress = w => { for (const s of w) s.st = false; };
+function stressPenult(w) {
+  const v = vidx(w, true); if (!v.length) return;
+  clearStress(w); w[v.length >= 2 ? v[v.length - 2] : v[0]].st = true;
+}
+function stressWeight(w) {
+  const v = vidx(w, true); if (!v.length) return;
+  clearStress(w);
+  let hostEnd = -1; w.forEach((s, i) => { if (!s.cl) hostEnd = i; });
+  let best = -1, bi = null;
+  for (let n = 0; n < v.length; n++) {
+    const i = v[n]; const s = w[i].s;
+    const nxt = n + 1 < v.length ? v[n + 1] : hostEnd + 1;
+    const consAfter = nxt - i - 1; const final = n === v.length - 1; let wt;
+    if (isLong(s)) wt = 4;
+    else if (ebase(s).length > 1 || isNas(s)) wt = 3;
+    else if (consAfter >= 2 || (final && consAfter >= 1)) wt = 2;
+    else wt = 1;
+    if (final && wt === 2) wt = 1;
+    if (wt > best) { best = wt; bi = i; }
+  }
+  w[bi].st = true;
+}
+const FRONT = new Set(chars('ieɛyø'));
+const E_OBSTR = new Set([...chars('ptkbdgfθsʃçxhvðzʒɣ'), 'tʃ', 'dʒ', 'ts', 'dz']);
+const SON = new Set(chars('mnɲŋl rɾʎʁjw'.replace(' ', '')));
+function setVowel(seg, nb) { const s = seg.s; seg.s = nb + (isNas(s) ? TIL : '') + (isLong(s) ? 'ː' : ''); }
+function mapv(seg, table) { const b = ebase(seg.s); if (has(table, b)) { setVowel(seg, table[b]); return true; } return false; }
+function hiatus(w) {
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (let i = 0; i < w.length - 1; i++) {
+      const a = w[i], b = w[i + 1];
+      if (eisV(a) && eisV(b)) {
+        const ba = ebase(a.s), bb = ebase(b.s);
+        if (ba === bb && ba.length === 1) {
+          a.s = ba + ((isNas(a.s) || isNas(b.s)) ? TIL : '') + ((a.st || b.st) ? 'ː' : '');
+          a.st = a.st || b.st;
+          w.splice(i + 1, 1); changed = true; break;
+        }
+        if ((bb === 'i' || bb === 'u') && !b.st && !isNas(b.s) && !isLong(b.s) && (i + 2 >= w.length || eisV(w[i + 2]))) {
+          b.s = bb === 'i' ? 'j' : 'w'; changed = true; break;
+        }
+        if ((ba === 'i' || ba === 'u') && !a.st && !isNas(a.s) && !isLong(a.s)) {
+          a.s = ba === 'i' ? 'j' : 'w'; changed = true; break;
+        }
+      }
+    }
+  }
+  degem(w);
+  return w;
+}
+function degem(w) {
+  let i = 0;
+  while (i < w.length - 1) {
+    if (w[i].s === w[i + 1].s && (w[i].s === 'j' || w[i].s === 'w')) w.splice(i + 1, 1);
+    else i += 1;
+  }
+  return w;
+}
+function epenthesis(w) {
+  let i = 1;
+  while (i < w.length) {
+    const s = w[i];
+    if (s.cl && w[i - 1].m !== s.m && eisV(s) && eisV(w[i - 1])) {
+      const lb = ebase(w[i - 1].s); const lc = lb[lb.length - 1];
+      const g = 'iea'.includes(lc) ? 'j' : 'w';
+      w.splice(i, 0, mk(g, false, s.m, true)); i += 2; continue;
+    }
+    i += 1;
+  }
+  return w;
+}
+const ensureStress = w => { if (!w.some(s => !s.cl && s.st)) stressPenult(w); };
+const replaceAll = (w, out) => { w.splice(0, w.length, ...out); };
+
+// cycle 1
+function c1_glide(w) {
+  const out = [];
+  for (const s of w) {
+    if (s.s === 'ia') { out.push(mk('j', false, s.m, s.cl)); out.push(mk('a', s.st, s.m, s.cl)); }
+    else out.push(s);
+  }
+  replaceAll(w, out);
+  for (let i = 0; i < w.length - 1; i++) {
+    const a = w[i], b = w[i + 1];
+    if (eisV(a) && eisV(b) && ['i', 'u'].includes(ebase(a.s)) && !a.st && !isLong(a.s) && !isNas(a.s)) a.s = ebase(a.s) === 'i' ? 'j' : 'w';
+  }
+  hiatus(w); return w;
+}
+function c1_penult(w) { stressPenult(w); return w; }
+function c1_r(w) { for (const s of w) if (s.s === 'r') s.s = 'ʁ'; return w; }
+function c1_breaking(w) {
+  const out = [];
+  for (const s of w) {
+    if (s.s === 'ea' || s.s === 'uo') {
+      out.push(mk(s.s === 'ea' ? 'j' : 'w', false, s.m, s.cl));
+      out.push(mk(s.s === 'ea' ? 'a' : 'o', s.st, s.m, s.cl));
+    } else if (s.s === 'ao') { s.s = 'ɔ'; out.push(s); }
+    else out.push(s);
+  }
+  replaceAll(w, out); degem(w); return w;
+}
+function c1_shorten(w) { for (const s of w) if (eisV(s) && !s.st && isLong(s.s)) s.s = rep(s.s, 'ː', ''); return w; }
+function c1_final_o(w) {
+  const v = vidx(w);
+  if (v.length) { const i = last(v); if (i === w.length - 1 && !w[i].st && ebase(w[i].s) === 'o') setVowel(w[i], 'u'); }
+  return w;
+}
+function c1_lj(w) { for (const s of w) if (s.s === 'ʎ') s.s = 'j'; degem(w); return w; }
+function c1_unround(w) { for (const s of w) if (eisV(s)) mapv(s, { y: 'i' }); return w; }
+function c1_clusters(w) {
+  if (w.length > 1 && w[0].s === 'h' && w[1].s === 'l') w.splice(0, 1);
+  else if (w.length > 1 && w[0].s === 'm' && (w[1].s === 'r' || w[1].s === 'ʁ')) w[0].s = 'b';
+  return w;
+}
+// cycle 2
+function c2_wv(w) {
+  if (w.length && w[0].s === 'w' && w.length > 1 && eisV(w[1])) w[0].s = 'v';
+  for (let i = 1; i < w.length - 1; i++) {
+    if (w[i].s === 'w' && w[i].cl && w[i - 1].m !== w[i].m && eisV(w[i + 1])) w[i].s = 'v';
+  }
+  return w;
+}
+const MONO = { ai: 'e', aj: 'e', au: 'o', aw: 'o', oi: 'ø', oj: 'ø', ou: 'u', ow: 'u', ei: 'i', ej: 'i', eu: 'ø', ew: 'ø',
+  uj: 'y', iw: 'y', ij: 'i', uw: 'u', 'ɔj': 'ø', 'ɔw': 'o' };
+function c2_mono(w) {
+  for (const s of w) {
+    if (eisV(s) && has(MONO, ebase(s.s)) && ebase(s.s).length === 2) {
+      const nas = isNas(s.s);
+      s.s = MONO[ebase(s.s)] + (nas ? TIL : '') + (s.st ? 'ː' : '');
+    }
+  }
+  let i = 0;
+  while (i < w.length - 1) {
+    const a = w[i], b = w[i + 1];
+    if (eisV(a) && (b.s === 'j' || b.s === 'w') && ebase(a.s).length === 1 && !isNas(a.s)) {
+      const nxt = i + 2 < w.length ? w[i + 2] : null;
+      if (nxt === null || !eisV(nxt)) {
+        const key = ebase(a.s) + b.s;
+        if (has(MONO, key)) { a.s = MONO[key] + ((a.st || isLong(a.s)) ? 'ː' : ''); w.splice(i + 1, 1); continue; }
+      }
+    }
+    i += 1;
+  }
+  return w;
+}
+const YOD = { t: 'tʃ', d: 'dʒ', k: 'tʃ', g: 'dʒ', s: 'ʃ', z: 'ʒ', n: 'ɲ', l: 'ʎ', h: 'ç',
+  'ð': 'ʒ', 'ʒ': 'ʒ', 'ʁ': 'ʁ', 'ɲ': 'ɲ', 'ɣ': 'j' };
+function c2_yod(w) {
+  let i = 0;
+  while (i < w.length - 1) {
+    const a = w[i], b = w[i + 1];
+    if (has(YOD, a.s) && b.s === 'j' && i + 2 < w.length && eisV(w[i + 2])) { a.s = YOD[a.s]; w.splice(i + 1, 1); continue; }
+    i += 1;
+  }
+  degem(w); return w;
+}
+function c2_velar(w) {
+  for (let i = 0; i < w.length - 1; i++) {
+    const a = w[i], b = w[i + 1];
+    if (['k', 'g', 'ɣ'].includes(a.s) && eisV(b) && FRONT.has(ebase(b.s)[0])) a.s = { k: 'tʃ', g: 'dʒ', 'ɣ': 'j' }[a.s];
+  }
+  degem(w); return w;
+}
+function c2_gamma(w) {
+  let i = 1;
+  while (i < w.length - 1) {
+    if (w[i].s === 'ɣ' && eisV(w[i - 1]) && eisV(w[i + 1])) { w.splice(i, 1); continue; }
+    i += 1;
+  }
+  degem(w); return w;
+}
+function c2_debucc(w) {
+  for (let i = 1; i < w.length - 1; i++) {
+    if (['s', 'z', 'ʃ', 'ʒ'].includes(w[i].s) && eisV(w[i - 1]) && !eisV(w[i + 1]) && !['j', 'w'].includes(w[i + 1].s)) w[i].s = 'h';
+  }
+  return w;
+}
+function c2_nasal(w) { for (const s of w) if (eisV(s) && isNas(s.s)) mapv(s, { i: 'e', u: 'o' }); return w; }
+function c2_hiatus(w) { hiatus(w); ensureStress(w); return w; }
+function c2_syncope(w) {
+  const v = vidx(w, true);
+  if (v.length < 3) return w;
+  for (let n = 1; n < v.length - 1; n++) {
+    const i = v[n]; const s = w[i];
+    if (s.st || isLong(s.s) || isNas(s.s) || ebase(s.s).length > 1) continue;
+    if (ebase(s.s) === 'ə') continue;
+    if (i > 0 && !eisV(w[i - 1]) && i + 1 < w.length && !eisV(w[i + 1]) && (i < 2 || eisV(w[i - 2]))
+      && (i + 2 >= w.length || eisV(w[i + 2])) && !['j', 'w'].includes(w[i - 1].s) && !['j', 'w'].includes(w[i + 1].s)) {
+      w.splice(i, 1); return w;
+    }
+  }
+  return w;
+}
+// cycle 3
+const UML = { a: 'ɛ', 'ɔ': 'œ', o: 'ø', u: 'y' };
+function c3_umlaut(w) {
+  for (let i = 0; i < w.length; i++) {
+    const s = w[i];
+    if (eisV(s) && s.st && has(UML, ebase(s.s))) {
+      let j = i + 1, trig = false;
+      while (j < w.length && !eisV(w[j])) {
+        if (w[j].s === 'j' || ['ʃ', 'ʒ', 'tʃ', 'dʒ', 'ɲ', 'ʎ', 'ç'].includes(w[j].s)) trig = true;
+        j += 1;
+      }
+      if (j < w.length && ebase(w[j].s)[0] === 'i') trig = true;
+      if (trig) mapv(s, UML);
+    }
+  }
+  return w;
+}
+function c3_hloss(w) {
+  let i = 1;
+  while (i < w.length - 1) {
+    if (w[i].s === 'h' && eisV(w[i - 1]) && !eisV(w[i + 1])) {
+      if (w[i - 1].st && !isLong(w[i - 1].s)) w[i - 1].s += 'ː';
+      w.splice(i, 1); continue;
+    }
+    i += 1;
+  }
+  return w;
+}
+function absorbJ(w) {
+  let i = 1;
+  while (i < w.length) {
+    if (w[i].s === 'j' && eisV(w[i - 1]) && isLong(w[i - 1].s) && FRONT.has(ebase(w[i - 1].s).slice(-1))
+      && (i + 1 >= w.length || !eisV(w[i + 1]))) { w.splice(i, 1); continue; }
+    i += 1;
+  }
+  return w;
+}
+function c3_dloss(w) {
+  let i = 1;
+  while (i < w.length - 1) {
+    if (w[i].s === 'ð' && eisV(w[i - 1]) && eisV(w[i + 1])) { w.splice(i, 1); continue; }
+    i += 1;
+  }
+  hiatus(w); ensureStress(w);
+  absorbJ(w);
+  return w;
+}
+function c3_osl(w) {
+  for (let i = 0; i < w.length; i++) {
+    const s = w[i];
+    if (eisV(s) && s.st && !isLong(s.s) && !isNas(s.s) && ebase(s.s).length === 1) {
+      if (i + 2 < w.length && !eisV(w[i + 1]) && eisV(w[i + 2])) s.s += 'ː';
+    }
+  }
+  return w;
+}
+function apo(w) {
+  if (!w.length || !eisV(last(w))) return w;
+  const s = last(w);
+  if (s.st || isNas(s.s) || isLong(s.s) || ebase(s.s).length > 1) return w;
+  const b = ebase(s.s);
+  if (s.cl) {
+    const same = w.filter(x => x.m === s.m && eisV(x));
+    if (same.length === 1) { setVowel(s, 'ə'); return w; }
+  }
+  if (b === 'a') { setVowel(s, 'ə'); return w; }
+  if (b === 'ə') return w;
+  let n = w.length - 2, cons = 0;
+  while (n >= 0 && !eisV(w[n])) { cons += 1; n -= 1; }
+  if (cons === 0) return w;
+  if (w[w.length - 2].s === 'j' || w[w.length - 2].s === 'w') {
+    if (cons > 1) setVowel(s, 'ə');
+    if (cons === 1) w.splice(w.length - 1, 1);
+    return w;
+  }
+  if (cons >= 2) {
+    const l = w[w.length - 2].s, p = w[w.length - 3].s;
+    if ((SON.has(l) && E_OBSTR.has(p)) || (E_OBSTR.has(l) && E_OBSTR.has(p) && !(p === 's' || p === 'h'))) { setVowel(s, 'ə'); return w; }
+  }
+  w.splice(w.length - 1, 1);
+  return w;
+}
+function c3_apocope(w) { apo(w); absorbJ(w); return w; }
+const DEVOICE = { b: 'p', d: 't', g: 'k', v: 'f', 'ð': 'θ', z: 's', 'ʒ': 'ʃ', 'ɣ': 'x', 'dʒ': 'tʃ' };
+function c3_devoice(w) {
+  let i = w.length - 1;
+  while (i >= 0 && !eisV(w[i])) { if (has(DEVOICE, w[i].s)) w[i].s = DEVOICE[w[i].s]; i -= 1; }
+  return w;
+}
+// cycle 4
+function c4_rvoc(w) {
+  let i = 0;
+  while (i < w.length) {
+    if (w[i].s === 'ʁ' && i > 0 && eisV(w[i - 1]) && (i === w.length - 1 || !eisV(w[i + 1]))) {
+      const v = w[i - 1];
+      if (v.st) { if (!isLong(v.s) && ebase(v.s).length === 1) v.s += 'ː'; }
+      else setVowel(v, 'ə');
+      w.splice(i, 1); continue;
+    }
+    i += 1;
+  }
+  return w;
+}
+function c4_rhot(w) {
+  for (let i = 1; i < w.length - 1; i++) if (w[i].s === 'z' && eisV(w[i - 1]) && eisV(w[i + 1])) w[i].s = 'ɾ';
+  return w;
+}
+const GVS = { 'iː': 'ei', 'uː': 'ou', 'yː': 'øy', 'eː': 'iː', 'oː': 'uː', 'øː': 'yː',
+  'ɛː': 'eː', 'ɔː': 'oː', 'aː': 'ɛː', 'œː': 'øː' };
+function c4_gvs(w) { for (const s of w) if (eisV(s) && !isNas(s.s) && has(GVS, s.s)) s.s = GVS[s.s]; return w; }
+function c4_h(w) {
+  let i = 0;
+  while (i < w.length) { if (w[i].s === 'h') { w.splice(i, 1); continue; } i += 1; }
+  hiatus(w); ensureStress(w); return w;
+}
+function c4_cf(w) { for (const s of w) { if (s.s === 'ç') s.s = 'ʃ'; else if (s.s === 'θ') s.s = 'f'; } return w; }
+function c4_reduce(w) {
+  const T = { a: 'ə', e: 'ə', o: 'ə', 'ɛ': 'ə', 'ɔ': 'ə', 'ø': 'ə', 'œ': 'ə' };
+  for (const s of w) {
+    if (eisV(s) && !s.st && !isLong(s.s) && ebase(s.s).length === 1) { if (isNas(s.s)) continue; mapv(s, T); }
+  }
+  return w;
+}
+function c4_dw(w) {
+  for (let i = 0; i < w.length - 1; i++) {
+    if (w[i].s === 'd' && w[i + 1].s === 'w') { w[i].s = 'b'; w.splice(i + 1, 1); break; }
+  }
+  let i = 0;
+  while (i < w.length - 1) { if (w[i].s === 't' && w[i + 1].s === 'w') { w.splice(i + 1, 1); continue; } i += 1; }
+  return w;
+}
+// cycle 5
+function c5_deaff(w) { for (const s of w) { if (s.s === 'tʃ') s.s = 'ʃ'; else if (s.s === 'dʒ') s.s = 'ʒ'; } return w; }
+function c5_schwa(w) {
+  if (vidx(w).length >= 2 && eisV(last(w)) && ebase(last(w).s) === 'ə' && !last(w).st) w.pop();
+  return w;
+}
+function c5_final(w) {
+  if (!w.length || eisV(last(w))) return w;
+  let i = w.length - 1;
+  while (i >= 0 && !eisV(w[i])) i -= 1;
+  const coda = w.slice(i + 1);
+  if (!coda.length) return w;
+  const l = last(coda).s;
+  if (['p', 't', 'k', 'ʃ', 'tʃ', 's', 'f', 'x'].includes(l) || ['b', 'd', 'g'].includes(l)) {
+    const nw = ['p', 't', 'k', 'b', 'd', 'g'].includes(l) ? 'ʔ' : 'h';
+    const keep = coda.slice(0, -1).filter(c => SON.has(c.s) && c.s !== 'ʁ');
+    w.splice(i + 1, w.length - (i + 1), ...keep, mk(nw, false, last(coda).m, last(coda).cl));
+  }
+  return w;
+}
+function c5_tone(w) {
+  if (w.length && (last(w).s === 'ʔ' || last(w).s === 'h')) {
+    const t = last(w).s === 'ʔ' ? 'H' : 'F';
+    const v = vidx(w);
+    if (v.length) w[last(v)].tone = t;
+    w.pop();
+  }
+  return w;
+}
+const REG = { b: 'p', d: 't', g: 'k', v: 'f', 'ð': 'θ', z: 's', 'ʒ': 'ʃ', 'ɣ': 'x', 'dʒ': 'tʃ' };
+function c5_register(w) {
+  if (w.length && has(REG, w[0].s)) {
+    const v = vidx(w);
+    if (v.length) { const s = w[v[0]]; s.tone = s.tone === null ? 'L' : { H: 'R', F: 'LF', L: 'L', R: 'R', LF: 'LF' }[s.tone]; }
+    w[0].s = REG[w[0].s];
+  }
+  return w;
+}
+function c5_diph(w) { for (const s of w) if (eisV(s)) mapv(s, { ei: 'ai', ou: 'au', 'øy': 'œy' }); return w; }
+
+const CYCLES = [
+  [['Glide formation', c1_glide], ['Penultimate stress', c1_penult], ['Rhotic merger', c1_r], ['Rising diphthongs', c1_breaking],
+   ['Unstressed shortening', c1_shorten], ['Final raising', c1_final_o], ['Delateralization', c1_lj], ['Unrounding', c1_unround],
+   ['Onset simplification', c1_clusters], ['Hiatus resolution', c2_hiatus]],
+  [['Initial w > v', c2_wv], ['Monophthongization', c2_mono], ['Yod palatalization', c2_yod], ['Velar palatalization', c2_velar],
+   ['ɣ-loss', c2_gamma], ['Coda aspiration', c2_debucc], ['Nasal lowering', c2_nasal], ['Hiatus resolution', c2_hiatus],
+   ['Medial syncope', c2_syncope]],
+  [['i-umlaut', c3_umlaut], ['h-loss', c3_hloss], ['ð-loss', c3_dloss], ['Open-syllable lengthening', c3_osl],
+   ['Apocope', c3_apocope], ['Final devoicing', c3_devoice]],
+  [['r-vocalization', c4_rvoc], ['Rhotacism', c4_rhot], ['Long-vowel chain shift', c4_gvs], ['h-loss', c4_h],
+   ['Fricative mergers', c4_cf], ['Unstressed reduction', c4_reduce], ['Labiovelar simplification', c4_dw]],
+  [['Deaffrication', c5_deaff], ['Final schwa loss', c5_schwa], ['Coda weakening', c5_final], ['Tonogenesis I: coda', c5_tone],
+   ['Tonogenesis II: register', c5_register], ['Diphthong lowering', c5_diph]],
+];
+function eshow(w, stress) {
+  if (stress === undefined) stress = true;
+  let out = '';
+  const v = vidx(w, true); const poly = v.length >= 2;
+  const stI = v.find(i => w[i].st);
+  let markAt = null;
+  if (stress && poly && stI !== undefined) {
+    const cons = []; let k = stI - 1;
+    while (k >= 0 && !eisV(w[k]) && !(w[k].cl !== w[stI].cl)) { cons.push(k); k -= 1; }
+    if (k < 0) markAt = 0;
+    else if (!cons.length) markAt = stI;
+    else if (cons.length === 1) markAt = cons[0];
+    else {
+      const l = w[cons[0]].s, p = w[cons[1]].s;
+      markAt = (['l', 'r', 'ʁ', 'j', 'w', 'ɾ'].includes(l) && E_OBSTR.has(p) && p !== 'h') ? cons[1] : cons[0];
+    }
+  }
+  for (let i = 0; i < w.length; i++) {
+    const s = w[i];
+    if (s.cl && (i === 0 || w[i - 1].m !== s.m)) out += '=';
+    if (i === markAt) out += 'ˈ';
+    let seg = s.s;
+    if (s.tone) seg = seg[0] + TONE_MARK[s.tone] + seg.slice(1);
+    out += seg;
+  }
+  return NFC(out);
+}
+function erun(word, src) {
+  const w = epenthesis(etokenize(word));
+  if (src === 'O') stressWeight(w); else stressPenult(w);
+  const stages = [eshow(w)];
+  for (const cyc of CYCLES) { for (const [, f] of cyc) f(w); stages.push(eshow(w)); }
+  return stages;
+}
+function erunTrace(word, src) {
+  const w = epenthesis(etokenize(word));
+  if (src === 'O') stressWeight(w); else stressPenult(w);
+  const trace = [['start', eshow(w)]];
+  CYCLES.forEach((cyc, ci) => {
+    for (const [name, f] of cyc) {
+      const b = eshow(w); f(w); const a = eshow(w);
+      if (a !== b) trace.push([`${ci + 1}:${name}`, a]);
+    }
+  });
+  return trace;
+}
+
+// ================================================================== romanization
+const R_TONE = { '́': 'H', '̂': 'F', '̀': 'L', '̌': 'R', '̏': 'LF' };
+const R_VL = new Set(chars('aeiouyɛɔøœə'));
+const VMAP = { i: 'i', y: 'ü', e: 'e', 'ø': 'ö', 'ɛ': 'ä', 'œ': 'ö', a: 'a', 'ə': 'ë', o: 'o', 'ɔ': 'å', u: 'u' };
+const RNAS = { a: 'ą', e: 'ę', o: 'ǫ', 'ɛ': 'ę', 'ø': 'ǫ', u: 'ǫ', i: 'ę' };
+const CMAP = { 'θ': 'dh', 'ð': 'dh', 'ʃ': 'sh', 'ʒ': 'zh', 'ɲ': 'ny', 'ʎ': 'ly', 'ʁ': 'r', 'ɾ': 'ř', j: 'y' };
+const VOICE = { p: 'b', t: 'd', k: 'g', f: 'v', s: 'z', sh: 'zh', dh: 'dh' };
+function rsegs(word) {
+  const out = [];
+  for (const c of NFD(word)) { if (out.length && (isComb(c) || c === 'ː')) out[out.length - 1] += c; else out.push(c); }
+  return out;
+}
+function rinfo(seg) {
+  const b = seg[0]; let tone = null;
+  for (const c of seg) { if (has(R_TONE, c)) { tone = R_TONE[c]; break; } }
+  return [b, tone, seg.includes(TIL), seg.includes('ː')];
+}
+function romMorph(m) {
+  if (m.startsWith('ɲi-')) return 'nyi-' + romMorph(m.slice(3));
+  const units = [];
+  for (const g of rsegs(m)) {
+    const [b, t, nas, lng] = rinfo(g);
+    if (R_VL.has(b)) {
+      if (units.length && last(units)[0] === 'V' && 'iyu'.includes(b) && !nas && !t && !lng && last(units)[3] === false) {
+        const u = last(units); units[units.length - 1] = ['V', u[1] + { i: 'i', y: 'y', u: 'u' }[b], u[2], true]; continue;
+      }
+      const tb = nas ? (has(RNAS, b) ? RNAS[b] : VMAP[b] + TIL) : VMAP[b];
+      units.push(['V', tb.repeat(lng ? 2 : 1), t, false]);
+    } else {
+      let txt = has(CMAP, b) ? CMAP[b] : b;
+      if (b === 'j' && units.length && last(units)[0] === 'V' && last(units)[1].endsWith('y')) txt = 'i';
+      units.push(['C', txt, null, null]);
+    }
+  }
+  const vi = []; units.forEach((u, i) => { if (u[0] === 'V') vi.push(i); });
+  if (vi.length) {
+    const first = vi[0];
+    if (['L', 'R', 'LF'].includes(units[first][2]) && first > 0 && units[0][0] === 'C' && has(VOICE, units[0][1])) units[0] = ['C', VOICE[units[0][1]], null, null];
+  }
+  const marks = {};
+  for (let i = 0; i < units.length; i++) {
+    const u = units[i];
+    if (u[0] === 'V' && ['H', 'F', 'R', 'LF'].includes(u[2])) {
+      let j = i + 1; while (j < units.length && units[j][0] === 'C') j += 1;
+      const ncons = j - i - 1; const coda = j === units.length ? ncons : Math.max(0, ncons - 1);
+      const letter = (u[2] === 'H' || u[2] === 'R') ? 'q' : 'h';
+      marks[i + coda] = (marks[i + coda] || '') + letter;
+    }
+  }
+  let out = '';
+  units.forEach((u, i) => { out += u[1]; if (has(marks, i)) out += marks[i]; });
+  return out;
+}
+function romWord(w) {
+  if (!w || '«»,.?!:;–'.includes(w)) return w;
+  let lead = '', trail = '';
+  while (w && w[0] === '«') { lead += w[0]; w = w.slice(1); }
+  while (w && '».,?!:;'.includes(w[w.length - 1])) { trail = w[w.length - 1] + trail; w = w.slice(0, -1); }
+  const parts = rep(w, 'ˈ', '').split('=');
+  let out = romMorph(parts[0]);
+  for (const c of parts.slice(1)) out += '-' + romMorph(c);
+  return lead + out + trail;
+}
+const rom = text => text.split(' ').map(romWord).join(' ');
+
+// ================================================================== candidates and scoring
+const OL_DOMAINS = new Set(['kin', 'body', 'herding', 'animal', 'landscape', 'weather', 'home', 'numeral-low', 'pronoun']);
+const HS_DOMAINS = ['sacred', 'ritual', 'abstract', 'culture', 'craft', 'law', 'trade', 'emotion', 'general', 'numeral'];
+const CENTUM_DOMAINS = new Set(['numeral', 'numeral-low', 'body', 'ritual']);
+const KEYWORDS = [
+  ['kin', 'mother father brother sister son daughter wife husband uncle aunt nephew niece grandfather grandmother cousin widow kin family bride child-in-law'],
+  ['body', 'head hand foot eye ear nose mouth tooth tongue knee arm leg bone blood liver heart skin hair belly finger nail breast neck back lip'],
+  ['herding', 'sheep goat cow ox bull ram lamb milk cheese wool herd pasture fold horn shepherd'],
+  ['animal', 'wolf bear dog fox deer bird eagle snake fish mouse pig boar horse'],
+  ['landscape', 'mountain hill stone rock tree wood forest snow river spring field valley cave path star sky cloud moon sun earth ground'],
+  ['weather', 'rain wind storm thunder frost ice cold winter summer'],
+  ['sacred', 'god goddess holy sacred hymn rite temple pray prayer offering wine soul spirit divine priest ecstasy mystery oracle'],
+  ['abstract', 'truth law justice thought memory joy fear hope peace freedom beauty time eternity word name light darkness'],
+  ['craft', 'make build weave forge craft tool smith potter'],
+].map(([d, ws]) => [d, ws.split(' ')]);
+function guessDomain(gloss) {
+  if (!gloss) return 'general';
+  const g = rep(gloss.toLowerCase(), ',', ' ').split(/\s+/).filter(Boolean);
+  for (const [dom, words] of KEYWORDS) if (g.some(x => words.includes(x))) return dom;
+  return 'general';
+}
+const preferredRoad = domain => OL_DOMAINS.has(domain) ? 'OL' : 'HS';
+const NOUN_STEMS = { o: 'os', a: 'eh₂', i: 'is', u: 'us', n: 'om', root: '' };
+const ADJ_STEMS = { o: 'os', a: 'eh₂' };
+const STEM_LABEL = { o: 'o-stem *-os', a: 'ā-stem *-eh₂', i: 'i-stem *-is', u: 'u-stem *-us', n: 'neuter *-om', root: 'root noun', 'as-is': 'as given' };
+const endsInVowelOrLaryngeal = toks => toks.length > 0 && (['h1', 'h2', 'h3', 'H'].includes(last(toks)) || P_VOW.has(last(toks)));
+function hsRoad(word, centum, verb, vowelRoot) {
+  const toks = pieTokenize(word);
+  const numeral = centum === 'numeral';
+  const first = hshow(mainStep1(toks, !!centum, verb, numeral));
+  return [first, hshow(mainStep2(mainTokens(first), vowelRoot))];
+}
+function olRoad(word) {
+  const toks = pieTokenize(word);
+  const first = hillStep1(toks);
+  return [first, hillSpell(hillStep2(hillTokens(first)))];
+}
+const toEngineForm = s => rep(NFC(s), 'ə', 'a');
+const stripStress = f => rep(f, 'ˈ', '');
+
+let LEX = [];         // [gloss, form, src]
+let LEX_INDEX = null;
+function setLexicon(lex) { LEX = lex; LEX_INDEX = null; }
+function lexIndex() {
+  if (LEX_INDEX === null) {
+    const idx = [{}, {}, {}, {}, {}, {}];
+    for (const [gloss, form, src] of LEX) {
+      erun(form, src).forEach((f, k) => { const key = stripStress(f); (idx[k][key] = idx[k][key] || []).push(gloss); });
+    }
+    LEX_INDEX = idx;
+  }
+  return LEX_INDEX;
+}
+const SCORE = { road_match: 2.0, road_mismatch: -1.0, syl: { 1: 0.5, 2: 1.5, 3: 1.0, 4: 0.0 }, syl_long: -1.5,
+  cluster3: -1.5, geminate: -0.5, foreign_sound: -1.0, eroded_v: -1.0, empty_v: -3.0, awkward_final: -1.0,
+  homophone0: -3.0, homophoneV: -1.5, homophoneV_cap: -3.0, centum_ok: 0.5, centum_bad: -1.0, hs_ending: 0.5, breaking: 0.25 };
+const STAGE0_OK = new Set([...chars('pbtdkgvðɣzsʒhʁrlmnɲʎjw'), ...chars('aeiouy'), 'ə']);
+function ipaSegments(s) {
+  const out = [];
+  for (const c of NFD(rep(rep(s, 'ˈ', ''), '=', ''))) { if (out.length && (isComb(c) || c === 'ː')) out[out.length - 1] += c; else out.push(c); }
+  return out;
+}
+function ipaIsVowel(seg) { const b = chars(seg).filter(c => !isComb(c) && c !== 'ː').join(''); return b.length > 0 && E_VL.has(b[0]); }
+function sameMeaning(gloss, other) {
+  const stem = w => strip(w.toLowerCase(), ' ,.()"').slice(0, 4);
+  const a = new Set(rep(gloss, ',', ' ').split(/\s+/).filter(w => w.length > 2).map(stem));
+  const b = new Set(rep(other, ',', ' ').split(/\s+/).filter(w => w.length > 2).map(stem));
+  for (const x of a) if (b.has(x)) return true;
+  return false;
+}
+function consClusters(form) {
+  const w = etokenize(form); const runs = []; let cur = 0;
+  for (const s of w) { if (eisV(s)) { runs.push(cur); cur = 0; } else cur += 1; }
+  runs.push(cur);
+  return [runs, w];
+}
+const LAYER = { HS: 'main layer', OL: 'hill layer' };
+const art = w => 'aeiou'.includes(w.slice(0, 1)) && w ? 'an' : 'a';
+function score(cand, domain) {
+  const notes = []; let sc = 0;
+  const road = cand.road; const pref = preferredRoad(domain);
+  if (road === pref) { sc += SCORE.road_match; notes.push(`the ${LAYER[road]} suits ${art(domain)} ${domain} word`); }
+  else { sc += SCORE.road_mismatch; notes.push(`the ${LAYER[road]} is unusual for ${art(domain)} ${domain} word`); }
+  const st0 = cand.stages[0];
+  const [runs, segs] = consClusters(cand.stage0_input);
+  const nsyl = segs.filter(eisV).length;
+  sc += has(SCORE.syl, nsyl) ? SCORE.syl[nsyl] : SCORE.syl_long;
+  if (nsyl >= 5) notes.push(`${nsyl} syllables is long for Pierian`);
+  if (runs.length && (runs[0] >= 3 || Math.max(...runs) >= 3)) { sc += SCORE.cluster3; notes.push('three-consonant cluster'); }
+  let gem = false;
+  for (let i = 0; i < segs.length - 1; i++) if (segs[i].s === segs[i + 1].s && !eisV(segs[i])) gem = true;
+  if (gem) { sc += SCORE.geminate; notes.push('double consonant'); }
+  const foreign = new Set();
+  for (const s of segs) if (!eisV(s)) { const b = ebase(s.s); if (!STAGE0_OK.has(b)) foreign.add(b); }
+  if (foreign.size) { sc += SCORE.foreign_sound * foreign.size; notes.push('sounds outside Early Pierian: ' + [...foreign].sort().join(' ')); }
+  const v = stripStress(cand.stages[5]);
+  const vsegs = v ? ipaSegments(v) : [];
+  if (!v) { sc += SCORE.empty_v; notes.push('vanishes by period 5'); }
+  else if (vsegs.every(ipaIsVowel)) { sc += SCORE.eroded_v; notes.push('worn down to a bare vowel by period 5'); }
+  if (vsegs.length >= 2 && ['j', 'w'].includes(last(vsegs)) && !ipaIsVowel(vsegs[vsegs.length - 2])) { sc += SCORE.awkward_final; notes.push('ends in consonant + glide in period 5'); }
+  const idx = lexIndex();
+  const gloss = cand.gloss || '';
+  const h0 = idx[0][stripStress(st0)] || [];
+  const same = h0.filter(g => gloss && sameMeaning(gloss, g));
+  if (same.length) { cand.existing = same[0]; notes.push(`reproduces the old word for ‘${same[0]}’`); }
+  else if (h0.length) { sc += SCORE.homophone0; notes.push('sounds the same in Early Pierian as ' + h0.join(', ')); }
+  const hV = (idx[5][v] || []).filter(g => !(gloss && sameMeaning(gloss, g)));
+  if (hV.length && !same.length) { sc += Math.max(SCORE.homophoneV * hV.length, SCORE.homophoneV_cap); notes.push('sounds the same in period 5 as ' + hV.join(', ')); }
+  if (cand.centum) {
+    if (CENTUM_DOMAINS.has(domain)) { sc += SCORE.centum_ok; notes.push('keeps the palatal as a velar, which is allowed for this domain'); }
+    else { sc += SCORE.centum_bad; notes.push('keeps the palatal as a velar, which is rare outside numerals, ritual and the body'); }
+  }
+  if (road === 'HS') {
+    const f = NFC(cand.source_form);
+    if (cand.pos !== 'verb' && ['u', 'ō', 'i', 'õ', 'ī', 'ū'].includes(f.slice(-1))) sc += SCORE.hs_ending;
+    if (['ea', 'ao', 'uo'].some(d => f.includes(d))) { sc += SCORE.breaking; notes.push('the broken diphthong gives the typical ja, wo or ɔ later'); }
+  }
+  return [Math.round(sc * 100) / 100, notes];
+}
+function build(rootIn, opts) {
+  const o = Object.assign({ pos: 'noun', stem: null, domain: 'general', roads: ['HS', 'OL'], gloss: '' }, opts || {});
+  const pos = o.pos;
+  const bare = rootIn.trim().endsWith('-');
+  const rootClean = rstrip(rootIn.trim(), '-');
+  const toks = pieTokenize(rootClean);
+  const hasPalatal = toks.some(t => ["k'", "g'", "g'h"].includes(t));
+  const vroot = endsInVowelOrLaryngeal(toks);
+  let stems;
+  if (o.stem) stems = [o.stem];
+  else if (!bare) stems = ['as-is'];
+  else if (pos === 'noun') stems = ['o', 'a', 'i', 'n', 'root'];
+  else if (pos === 'adj') stems = ['o', 'a'];
+  else stems = ['verb'];
+  const cands = [];
+  for (const st of stems) {
+    let hsWord, olWord, label;
+    if (pos === 'verb') {
+      hsWord = vroot ? rootClean : rootClean + 'e';
+      olWord = rootClean + (vroot ? 'ti' : 'eti');
+      label = vroot ? 'athematic' : 'thematic';
+    } else {
+      const table = pos === 'adj' ? ADJ_STEMS : NOUN_STEMS;
+      const end = (st === 'as-is' || st === 'root') ? '' : (has(table, st) ? table[st] : '');
+      hsWord = olWord = rootClean + end;
+      label = has(STEM_LABEL, st) ? STEM_LABEL[st] : st;
+    }
+    if (o.roads.includes('HS')) {
+      const variants = [false];
+      if (hasPalatal) variants.push(['numeral', 'numeral-low'].includes(o.domain) ? 'numeral' : true);
+      for (const cent of variants) {
+        const [mid, src] = hsRoad(hsWord, cent, pos === 'verb', vroot && pos === 'verb');
+        const eIn = toEngineForm(src + (pos === 'verb' ? '-i' : ''));
+        cands.push({ road: 'HS', pos, stem: label, pie: hsWord, mid, source_form: src, centum: !!cent, stage0_input: eIn, stages: erun(eIn, 'H') });
+      }
+    }
+    if (o.roads.includes('OL')) {
+      const [mid, src] = olRoad(olWord);
+      const eIn = toEngineForm(src);
+      cands.push({ road: 'OL', pos, stem: label, pie: olWord, mid, source_form: src, centum: false, stage0_input: eIn, stages: erun(eIn, 'O') });
+    }
+  }
+  const seen = new Set(); const out = [];
+  for (const c of cands) {
+    const key = c.road + '\u0000' + c.stages[0];
+    if (seen.has(key)) continue;
+    seen.add(key);
+    c.gloss = o.gloss;
+    [c.score, c.notes] = score(c, o.domain);
+    out.push(c);
+  }
+  out.sort((a, b) => b.score - a.score);
+  return out;
+}
+// early-period trace (print_trace in the script)
+function earlyTrace(c) {
+  const steps = [];
+  if (c.road === 'HS') {
+    const tr = [];
+    mainStep2(mainTokens(c.mid), c.pos === 'verb' && c.source_form.endsWith('ð') && !c.mid.endsWith('ð'), tr);
+    let prev = c.mid;
+    for (const [name, f] of tr) { if (f !== prev) { steps.push([name, f]); prev = f; } }
+  } else {
+    const tr = [];
+    hillStep2(hillTokens(c.mid), tr);
+    let prev = oshow(hillTokens(c.mid));
+    for (const [name, f] of tr) { if (f !== prev) { steps.push([name, rep(f, 'j', 'y')]); prev = f; } }
+  }
+  return steps;
+}
+function trace(c) { return { early: earlyTrace(c), periods: erunTrace(c.stage0_input, c.road === 'HS' ? 'H' : 'O') }; }
+// principal parts of a verb, as the lexicon builds them
+function verbParts(sourceForm, road) {
+  let fs, src;
+  if (road === 'HS') {
+    const stem = sourceForm;
+    fs = { pres: stem + '-i', imp: stem, past: stem + '-t', ptcp: stem + '-ã', pl1: stem + '-um', pl3: stem + '-ũ' };
+    src = 'H';
+  } else {
+    const f = sourceForm;
+    const fc = chars(f);
+    const before = chars(NFD(fc.slice(0, -1).join(''))).filter(c => 'aeiouyü'.includes(c));
+    const rt = (f.endsWith('i') && !eisV({ s: fc[fc.length - 2] || '' }) && before.length) ? fc.slice(0, -1).join('') : f;
+    fs = { pres: f, imp: rt, past: rt + '-t', ptcp: rt + '-ã', pl1: rt + '-um', pl3: rt + '-ũ' };
+    src = 'O';
+  }
+  const res = {};
+  for (const k of Object.keys(fs)) res[k] = erun(fs[k], src)[5];
+  return res;
+}
+// bound forms of a noun before the object and locative clitics
+function boundForms(c) {
+  const src = c.road === 'HS' ? 'H' : 'O';
+  return { obj: erun(c.source_form + '=nã', src)[5], loc: erun(c.source_form + '=ẽ', src)[5] };
+}
+
+const api = { pieTokenize, pieNormalize, mainStep1, mainStep2, mainTokens, hshow, hillStep1, hillStep2, hillTokens, oshow, hillSpell,
+  erun, erunTrace, etokenize, rom, romWord, build, guessDomain, preferredRoad, trace, earlyTrace, verbParts, boundForms,
+  setLexicon, hsRoad, olRoad, stripStress, OL_DOMAINS, HS_DOMAINS, LAYER, STEM_LABEL };
+if (typeof module !== 'undefined' && module.exports) module.exports = api;
+else root.PierianCore = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+const DATA = {"lex":[["god","nīzu","H"],["heaven","nīvō","H"],["fire","bōvar","H"],["water","avō","H"],["wine","zealō","H"],["heart","heardō","H"],["soul","hūɣō","H"],["speech, language","liɣō","H"],["earth","naozō","H"],["night","naktō","H"],["darkness","orpō","H"],["bone","ostõ","H"],["child","būri","H"],["house","nuomu","H"],["horse","ezbu","H"],["blood","ezōr","H"],["mountain","mearzō","H"],["song","haonō","H"],["head","haorzō","H"],["dawn","auzō","H"],["wind","a.vī.ō","H"],["life","mīvō","H"],["truth","vīrō","H"],["lord","reazu","H"],["word","mazdō","H"],["lightning","zvealō","H"],["joy","zōvō","H"],["Sun (god), sun","hauli","H"],["fruit","mruɣu","H"],["gate","nuorō","H"],["law","leazō","H"],["people","levdō","H"],["stream","treavō","H"],["mouth","ūzõ","H"],["work","vearzō","H"],["rite","yeavō","H"],["vessel","zevdrõ","H"],["ash","azō","H"],["hymn","ũnu","H"],["vision","veiðō","H"],["torch","ayðuolō","H"],["eternity","aivõ","H"],["peace","raomō","H"],["garment","vestī","H"],["thought","meanō","H"],["pain","algu","H"],["thread","znī.ō","H"],["hound","hunu","H"],["body","gẽtõ","H"],["mother","mi.āʁ","O"],["father","pu.eiʁ","O"],["brother","vʁi.āʁ","O"],["sister","wi.ouʁ","O"],["son","ūn","O"],["daughter","ðu.wu.eiʁ","O"],["husband","pu","O"],["friend","pʁī","O"],["hand","ʒiaʁ","O"],["arm","viaʒa","O"],["foot","pou","O"],["eye","u","O"],["ear","ouw","O"],["nose","nia","O"],["tooth","u.ã","O"],["tongue (organ)","dũʒwea","O"],["knee","ʒun","O"],["liver","yiʁ","O"],["name","inumã","O"],["snow","ɲī","O"],["wolf","wuw","O"],["sheep","uw","O"],["cow","bouw","O"],["bear","auʁ","O"],["dog","wou","O"],["tree","duʁ","O"],["stone","u.mou","O"],["salt","iaw","O"],["mead","mü","O"],["path","püm","O"],["day","ʒiyn","O"],["moon, month","mei.ã","O"],["year","yeiʁ","O"],["star","u.eiʁ","O"],["field","uʒʁ","O"],["fish","pī","O"],["chieftain","u.ʁeiʒ","O"],["the old gods, mountain spirits","ʒīw","O"],["golden","zealtu","H"],["warm","gearmu","H"],["black","hearzu","H"],["red","ruðu","H"],["ancient, primordial","heanu","H"],["mortal","maortu","H"],["immortal","ãmaortu","H"],["all, every","vizu","H"],["first","brōmu","H"],["deep","nuvu","H"],["sweet","zvōðu","H"],["alone","oinu","H"],["holy","zevrō","H"],["pure","bevdō","H"],["new","ɲiw","O"],["old (of people, things)","in","O"],["dead","muʁ","O"],["great","miyia","O"],["high","viʁʒa","O"],["swift","ou.a","O"],["bright","ʎiw","O"],["kindles","ayð-i","H"],["drinks","būð-i","H"],["eats","eð-i","H"],["comes","geam-i","H"],["becomes, is born","gean-i","H"],["sings","haon-i","H"],["hears","hlūð-i","H"],["carries","mear-i","H"],["speaks","mōð-i","H"],["gives","nūð-i","H"],["stands","tōð-i","H"],["sees","veið-i","H"],["pours","zeav-i","H"],["dies","maor-i","H"],["remembers","mean-i","H"],["strikes","geal-i","H"],["seeks","hōɣ-i","H"],["walks","teiɣ-i","H"],["releases","līð-i","H"],["turns","veart-i","H"],["flows","bleav-i","H"],["conceals","heal-i","H"],["tears","near-i","H"],["purifies","beav-i","H"],["knows","ʒnou","O"],["is (copula)","ia","O"],["has, holds","iʒ-i","O"],["sleeps","w-i","O"],["lives","bīw-i","O"],["wine-fire (ecstasy)","zealobōvar","H"],["joy-giver (title of the god)","zōvonūðō","H"],["sun-born","haulozeanī","H"],["heaven-born","nīvozeanī","H"],["one","uyn","O"],["two","dwou","O"],["three","tʁi","O"],["four","geðvorez","H"],["five","bẽk","H"],["six","zvez","H"],["seven","heptã","H"],["eight","oktou","H"],["nine","neavã","H"],["ten","neaɣã","H"],["hundred","gãtõ","H"],["I","iʒou","O"],["me (object)","mei","O"],["my","miɲ","O"],["you (sg.)","tū","O"],["you (sg. object)","twei","O"],["we","wiy","O"],["us","nou","O"],["he, she, it","hao","H"],["they","haoi","H"],["not","ɲi","O"],["and","da","H"],["but","īvið","H"],["now","nū̃","H"],["when, if","yãō","H"],["yes/no question particle","ðō","H"],["who?","kwa","O"],["what?","kwi","O"],["the language: \"mountain-tongue\"","mearzoliɣō","H"]],"late":[["nâi","god"],["nâi","heaven"],["pùːv","fire"],["ɛ̂ː","water"],["ʃɛ̀ːl","wine"],["ʃɛ́ː","heart"],["au","soul"],["liw","speech, language"],["nôː","earth"],["ná","night"],["úː","darkness"],["ˈuːtõ","bone"],["pœ̀y","child"],["nwuːm","house"],["íː","horse"],["iːɾ","blood"],["mjɛ̂ː","mountain"],["oːn","song"],["ôː","head"],["ûː","dawn"],["əˈvœy","wind"],["mâi","life"],["fài","truth"],["ʁɛ̂ː","lord"],["mɛ́ː","word"],["svjɛ̀ːl","lightning"],["sȕː","joy"],["yːl","Sun (god), sun"],["pʁàu","fruit"],["nwuː","gate"],["ʎɛ̂ː","law"],["lé","people"],["tʁɛ̂ː","stream"],["ˈauɾõ","mouth"],["fjɛ̏ː","work"],["jɛ̂ː","rite"],["ˈsèvdʁõ","vessel"],["ɛ̂ː","ash"],["õn","hymn"],["fàiw","vision"],["əˈðwuːl","torch"],["ˈiːvõ","eternity"],["ʁoːm","peace"],["fǐː","garment"],["mjɛːn","thought"],["ál","pain"],["snœ̀y","thread"],["aun","hound"],["ˈʃè̃tõ","body"],["mjɛː","mother"],["pwai","father"],["fʁɛ̀ː","brother"],["wjau","sister"],["aun","son"],["θœ̀yw","daughter"],["pu","man, husband"],["pʁai","friend"],["ʃɛ̀ː","hand"],["fjèːʒ","arm"],["pau","foot"],["u","eye"],["au","ear"],["ɲa","nose"],["fà̃","tooth"],["tø̀̃ʒwj","tongue (organ)"],["ʃùn","knee"],["jai","liver"],["iˈnaumã","name"],["ɲai","snow"],["fàu","wolf"],["au","sheep"],["pàu","cow"],["uː","bear"],["fàu","dog"],["tàu","tree"],["aum","stone"],["juː","salt"],["mi","mead"],["pim","path"],["ʃàin","day"],["ˈmaiã","moon, month"],["jai","year"],["fài","star"],["au","field"],["pai","fish"],["ˈœyʁî","chieftain"],["ʃœ̀y","the old gods, mountain spirits"],["ʃǎl","golden"],["ʃɛ̀ːm","warm"],["ʃɛ̂ː","black"],["ʁau","red"],["ʃɛːn","ancient, primordial"],["móː","mortal"],["ãˈmóː","immortal"],["fȁi","all, every"],["pʁùːm","first"],["nâu","deep"],["svùːw","sweet"],["yːn","alone"],["sèvʁ","holy"],["pě","pure"],["ɲœy","new"],["in","old (of people, things)"],["mau","dead"],["maij","great"],["fàiʒ","high"],["au","swift"],["jœy","bright"],["iː","kindles"],["pœ̀y","drinks"],["ej","eats"],["ʃèːm","comes"],["ʃèːn","becomes, is born"],["øːn","sings"],["lœy","hears"],["mjeː","carries"],["myː","speaks"],["nœy","gives"],["tyː","stands"],["fài","see"],["ʃȅː","pours"],["møː","die"],["mjeːn","remembers"],["ʃèːl","strikes"],["yː","seeks"],["tai","walks"],["lai","release, let go, leave, forgive"],["fjěː","turns"],["pʎȅː","flows"],["ʃeːl","conceals"],["ɲeː","tears"],["ʃnàu","knows"],["ja","be (copula)"],["âi","has, holds"],["fì","sleeps"],["pàiw","lives"],["mŷː","ecstasy"],["sə̀vˈnau","joy-giver (title of the god)"],["əlˈʒeːn","sun-born"],["nivˈʒeːn","heaven-born"],["œyn","one"],["pàu","two"],["tʁi","three"],["ʃə̀ðˈvuːʁə̂","four"],["pě̃","five"],["svȅ","six"],["ˈeptã","seven"],["ó","eight"],["ˈɲɛːvã","nine"],["ɲãː","ten"],["ˈkà̃tõ","hundred"],["âi","I"],["mai","me (object)"],["miɲ","my"],["tau","you (sg.)"],["tai","you (sg. object)"],["fài","we"],["nau","us"],["ɔ","he, she, it"],["yː","they"],["ɲi","not"],["tà","and"],["ˈaivî","but"],["nõː","now"],["jãw","when, if"],["θùː","yes/no question particle"],["kwa","who?"],["kwi","what?"],["ʃě̃","grief, mourning"],["ʃỳː","heed, attend to"],["pjeː","look closely, notice"],["kùːw","glad, content, happy"],["ˈnaiõ","fear"],["pjuː","hope"],["ˈiːɾõ","shame"],["lŷː","love, cherish"],["ʁyː","weep"],["tɛ̀ː","tear (drop)"],["mjɛːl","soft, gentle"],["tìːl","endure, suffer"],["nwyː","harm, injure"],["iˈwail","wound"],["mjɛj","heal, tend"],["ˈnaiɾõ","shape, form"],["ʃèː","make, do"],["tȉː","fashion, build with skill"],["maiw","change, move"],["pʁèː","break"],["ˈãtõ","end, edge"],["ɛ́ː","what is fitting, right order"],["svèw","custom, habit, way of life"],["sě̃","birth, nature, kind"],["ẫ","being, what is (true)"],["pjɛːl","story, tale"],["fȉː","good"],["nœ̂y","ill, evil, harm"],["nʁyːw","lie, deceit"],["əˈʎay","other"],["svỳː","self, own"],["ʃɛːm","same, one and the same"],["pjɛ̏ː","small, few"],["smàu","human being"],["ˈʃɛ̀ːlõ","servant, tender"],["pjɛ̀ːn","poor, toiling"],["ˈuːvõ","wealth, plenty"],["ʃùː","hunger, want"],["paij","bread, cooked food"],["ʃàiʎ","cold"],["kõː","shadow, shade"],["ˈfàiɾõ","town, settlement"],["fìːn","sale, market"],["kʁài","buy"],["pìːl","sell"],["ˈɛːɾõ","silver, coin"],["ɲɛ̂l","owe, must"],["ʃè̃j","weary, toil"],["nễ","teach, learn"],["ʃɛ̀j","ask, pray for"],["svìː","answer"],["nai","show, point out"],["ai","go"],["ɲêː","return home"],["ʃɛj","sit, stay"],["pjɛ̀j","fall"],["fìːl","want, will"],["møːj","be able, may"],["lyː","wash"],["pi","cook"],["ɲeːm","build"],["pjèː","pass, go beyond"],["lyːw","light"],["ʃɛːl","hidden, secret"],["ʃìːl","call, summon"],["əˈnai","blame, reproach"],["lai","let go, forgive"],["nyː","share, divide"],["ʁai","count, reckon"],["ʁai","reckoning, reason"],["ɛːl","ripe, mature"],["ʃùː","dear, beloved"],["smœ̀y","wonder, marvel"],["ˈnavnõ","feast, sacrificial meal"],["ʃiː","cup"],["fàij","cloth, garment"],["ˈauã","hearth"],["ˈnaiã","rope, bond"],["plùːw","whip, blow"],["nẽˈpwøj","master of a house"],["fȅ","voice"],["ʃě̃","mourn, grieve"],["ˈɛːvõ","back; after, behind (postposition)"],["nŷː","dull, blind"],["ˈʃɛ̀ːnõ","string (of an instrument); tone"],["svìːn","sound"],["tʁȅː","tread (grapes)"],["ˈiːɾõ","harvest, vintage; autumn"],["ˈfùlwã","leaf"],["êː","bird"],["iˈwâi","widow"],["auv","orphan"],["mail","grind"],["kěː","guest, stranger"],["ʃaw","roof"],["θœ̀yʒ","wall"],["fùːn","empty"],["mjeːn","remain, stay"],["ˈaumã","shoulder"],["ʃeː","cut, reap"],["pjai","rest, be still"],["pjɛ̌ː","strait, crossing; the Strait (the old kingdom)"],["ˈpà̃tû","passage, gallery"],["eːl","wander, travel"],["eː","fit, join; tune"],["aiɾ","iron; hull-metal"],["ʁyːw","rust, corrosion"],["naum","smoke, smog, fumes"],["uːn","dream"],["mái","wage, pay"],["fìː","guard, watch over"],["tẽj","roar, drone (of engines)"],["snàiv","sinew; cable"],["fàiɲ","strike, shoot"],["ʃèl","cell, capsule room"],["kʎɛ̏ː","rumour, news"],["fjà","shine, glow"],["ʃɛ̏ː","heat"],["svỳːw","sweat"],["ˈʃɛːvõ","mask, cover"],["kʁȅː","grab, snatch"],["fèj","lead away, abduct"],["pèj","fly"],["iˈʁau","copper"],["ˈõgəl","ember; spark"],["mœ̂l","bag, sack"],["jỗː","young"],["œ̂y","hate"],["pʁœ̀y","free"],["mej","dig; bury"],["kʁàu","heavy"],["lé̃","light (in weight)"],["ʎêː","gather, read (a tally or a roll)"],["ɲaw","corpse"],["nâ","vigil, night watch"],["maiɲ","wait"],["pȁi","write"],["ʃàiw","burn"],["kʁỳːw","crooked, out of true"],["pʎɛ̏ː","fold; a ksost that is larger inside than outside"],["ˈaiə̂","ice"],["taiw","step; a step in a proof"],["ɛ̃j","breathe"],["sìːl","laugh"],["uːl","beauty"],["tȕː","sacred silence"],["smỳː","smile, laughter"],["svjɛ̏ː","sleep"],["əmˈwuːn","harmony, music"],["kùːm","cosmos, world"],["aul","matter, stuff"],["nuˈbuːv","mind-fire, intellect"],["mé","awakening"],["ˈmaiðʁõ","measure"],["ɲɛ̂ː","gaze"],["mé̃","chain"],["laiw","release, forgetting"],["əimˈjɛːn","remembrance, anamnesis"],["ˈpỳːnî","the First Light (Phanes)"],["nəbəˈʒaw","the Ineffable"],["nəsəˈsîː","ferment-vat"],["sittəˈlɛ̂ː","sacred grove"],["kənnulˈlîː","grain offering"],["pě","purifier, priest"],["fjɛ̌ː","worker"],["snàu","knower, sage"],["tǐː","craftsman, maker"],["sə̀lˈʒɛːvõ","wine-pourer, hierophant"],["ʃál","concealed"],["nəvˈʒaw","unseeable"],["ʃȅː","seize, take"],["ʃeː","follow"],["kly̏ː","close"],["fjèː","open"],["pʎèː","weave"],["nøːl","protect"],["îː","offer"],["mé̃","bind"],["fjȅː","wear"],["əˈʒeː","rouse, wake"],["ʁêː","direct, plan"],["pjêː","scatter"],["ty̏ː","be silent"],["ễ","send"],["tʁèːm","tremble"],["plài","fill"],["pȍ","then"],["ɛj","again"],["ŷː","merely"],["õː","therefore"],["new","down"],["ɛːn","up"],["ʃâ","hither"],["ʃɛ̀ːn","thither"],["svìː","as, like"],["θài","that (complementizer)"],["aiw","behold!"],["uː","O! (vocative)"],["mai","do not (prohibitive)"],["ê","from"],["pìː","through"],["ɛ́̃","in exchange for"],["ˈpʁùːmõ","first"],["pàiɲ","woman, wife"],["fǎi","evening"],["θwài","door"],["ʃùˈʁaunã","grain"],["maiʒ","middle"],["mauʁ","many"],["ˈpœyjin","full"],["nauw","naked"],["mẽ","think"],["pjɛː","feed, guard"],["jâi","lie down"],["ʃài","place, put"],["pài","praise"],["fȅ̃","bind"],["i","which, who (relative)"],["ɲi","not"],["œy","your (sg)"],["œyj","our"],["fè̃","strike dead, kill"],["i","this (proximal)"],["u","that (distal)"],["ˈaijẽ","here"],["ˈauvẽ","there"],["ˈkwaijẽ","where?"],["ej","also, even"],["tœyv","you (pl)"],["sə̀lənˈwuːm","wine-house, tavern"],["ʃə̀lnəsəˈsîː","wine-vat"],["ˈnaiɾuvə nwəm","temple"],["mjəɾəˈliw","Pierian, in the language's own name (literally 'mountain-tongue')"],["mjəɾəˈlé","People of the Strait, in their own name (literally 'mountain-people')"],["ˈpjɛ̀ːtuv lé","the people of the Strait (old genitive phrase, used in rites)"],["kâ","coffee"],["koːm","charter, licence; the papers a company travels on"],["mî","lord (title for a Laulai, used in place of tau)"],["ˈsẽmî","child lord"],["ˈtẽsi","ratio (in tuning)"],["ˈtìtẽsi","the octave, 2:1"],["ˈtʁitẽsi","the fifth, 3:2"],["ˈtʁatẽsi","the fourth, 4:3"],["séʁ","true interval, a ratio that does work"],["kəˈsó","ksost, one of the crooked ones from outside the limit"],["fó","slave"],["laulai","a Laulai; the Laulai"],["maʁ","question particle, in questions put to a Laulai"],["məˈnemî","general, war-lord: a former child lord who commands"],["məˈneka","the War, the war-shrine of the second guild"],["ˈmãska","the Order, the ninth guild"],["soːm","the reach, the power to hold a figure and put force through it"],["saːn","wandering tone, the sound of a ksost"],["ʁáu","censor of the ninth guild"],["ˈsẽlâ","the levy of children for the war-shrine"],["ʃɛ̀ːl tàu","vine (literally 'wine tree')"],["ʃɛ̀ːl pʁàu","grape (literally 'wine fruit')"],["əˈvœy pim","air duct, vent (literally 'wind path')"],["aiɾ ʃaw","hull, seen from inside (literally 'iron roof')"],["fài ˈpà̃tû","lamp gallery, the lit market gallery (literally 'star passage')"],["ʃèl mjɛ̂ː","capsule block (literally 'cell mountain')"],["uːn ɛ̂ː","dream-water, a narcotic drink"],["mái lé","day labourers hired by the shift (literally 'wage people')"],["kʎɛ̏ː pim","the gossip that runs between holds (literally 'rumour path')"],["naum əˈvœy","foul air from the lower vents (literally 'smoke wind')"],["iˈnaumã mé̃","roll, register of persons (literally 'name chain')"],["nâu ˈpà̃tû","the deep galleries, where poor Laulai live"],["pœ̀y fìːn","the levy, as the People call it (literally 'child market')"],["nâi θœ̀yʒ","the firmament, the wall round the system (literally 'heaven wall')"],["fùːn ʃiː","a Laulai with no reach; calque of Laulai tas 'empty; cup'"],["ɲãː liw","tkalok, the register of proof (literally 'ten speech')"],["ɛ̂ː lé","burnt child lords (literally 'ash people')"],["ʁai lé","the Ledgers, the second guild (literally 'reckoning people')"],["kʁỳːw sě̃","crookedness, the crooking (Laulai mamn)"]]};
+</script>
+<script>
+(function () {
+'use strict';
+const C = PierianCore;
+C.setLexicon(DATA.lex);
+const LATE = new Map();
+for (const [v, g] of DATA.late) {
+  const k = C.stripStress(v).normalize('NFC');
+  if (!LATE.has(k)) LATE.set(k, []);
+  LATE.get(k).push(g);
+}
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+// ------------------------------------------------------------------ vocabulary of the interface
+const DOMAINS = [
+  ['Usually from the hill layer', [['kin', 'kin'], ['body', 'the body'], ['herding', 'herding'], ['animal', 'animals'], ['landscape', 'landscape'],
+    ['weather', 'weather'], ['home', 'the home'], ['numeral-low', 'low numbers'], ['pronoun', 'pronouns']]],
+  ['Usually from the main layer', [['sacred', 'the sacred'], ['ritual', 'ritual'], ['abstract', 'abstract ideas'], ['culture', 'culture'],
+    ['craft', 'crafts'], ['law', 'law'], ['trade', 'trade'], ['emotion', 'feelings'], ['numeral', 'numbers'], ['general', 'general']]],
+];
+const DOMAIN_NAME = {};
+for (const [, opts] of DOMAINS) for (const [v, n] of opts) DOMAIN_NAME[v] = n;
+const POS_NAME = { noun: 'noun', verb: 'verb', adj: 'adjective' };
+const LAYERS = { both: ['HS', 'OL'], hs: ['HS'], ol: ['OL'] };
+const KEYS = ['ʰ', 'ʷ', 'ḱ', 'ǵ', 'h₁', 'h₂', 'h₃', 'r̥', 'l̥', 'm̥', 'n̥', 'ā', 'ē', 'ī', 'ō', 'ū', 'i̯', 'u̯', '́'];
+const EARLY_NAMES = {
+  'II onsets': 'first consonants change', 'III long vowels': 'long vowels rise', 'IV w>v': 'w becomes v',
+  'V lenition': 'stops soften after vowels', 'Va clusters': 'clusters simplify', 'Vb s>z': 's voices before voiced sounds',
+  'VI breaking': 'the stressed vowel breaks', 'VII nasal': 'vowels nasalize before a nasal', 'VIII finals': 'endings wear down',
+  'IX-XI': 'final s, double consonants', '1 t-drop': 'initial t is lost', '3 reduction': 'unstressed vowels reduce',
+  '4 palatalization': 'consonants palatalize', '5-6 deaffrication, h': 'fricatives weaken to h', '7 lenition I': 'consonants weaken between vowels',
+  '8 nasalization': 'vowels nasalize before a nasal', '9 apocope': 'the final vowel is lost', '10 final stops': 'final stops are lost',
+  '11-12 ʁ, l>w': 'r becomes ʁ, l before a consonant becomes w', '13 diphthongs': 'diphthongs shift', '14 lenition II': 'a second weakening',
+  '15 hiatus': 'vowels in contact',
+};
+const RULE_DESC = {
+  'Glide formation': 'An unstressed high vowel next to another vowel becomes a glide, and ia becomes ja.',
+  'Penultimate stress': 'Stress moves to the next-to-last syllable. Clitics stay unstressed.',
+  'Rhotic merger': 'r becomes ʁ.',
+  'Rising diphthongs': 'The broken diphthongs rise: ea > ja, uo > wo, and ao > ɔ.',
+  'Unstressed shortening': 'Long vowels shorten outside the stressed syllable.',
+  'Final raising': 'A final unstressed o or õ becomes u or ũ.',
+  'Delateralization': 'ʎ becomes j.',
+  'Unrounding': 'y becomes i.',
+  'Onset simplification': 'Initial hl > l and mʁ > bʁ.',
+  'Hiatus resolution': 'Identical vowels in contact fuse into a long vowel, and an unstressed high vowel next to a vowel becomes a glide.',
+  'Initial w > v': 'A word-initial or clitic-initial w before a vowel becomes v.',
+  'Monophthongization': 'ai > e, au > o, oi > ø, ei > i, ou > u, uj > y. The result is long when stressed.',
+  'Yod palatalization': 'A consonant before j merges with it: tj > tʃ, dj > dʒ, sj > ʃ, nj > ɲ, lj > ʎ, hj > ç.',
+  'Velar palatalization': 'k, g and ɣ become tʃ, dʒ and j before front vowels.',
+  'ɣ-loss': 'ɣ is lost between vowels.',
+  'Coda aspiration': 'A sibilant before a consonant becomes h.',
+  'Nasal lowering': 'ĩ > ẽ and ũ > õ.',
+  'Medial syncope': 'In long words, the first short unstressed vowel between single consonants is lost.',
+  'i-umlaut': 'A stressed back vowel fronts before i, j or a palatal in the next syllable.',
+  'h-loss': 'h is lost. Before a consonant it lengthens a stressed vowel.',
+  'ð-loss': 'ð is lost between vowels, and the vowels then merge or glide.',
+  'Open-syllable lengthening': 'A stressed short vowel lengthens before a single consonant and a vowel.',
+  'Apocope': 'A final unstressed short vowel is lost after one consonant and becomes ə after a cluster. Final a becomes ə.',
+  'Final devoicing': 'Final voiced obstruents become voiceless.',
+  'r-vocalization': 'ʁ before a consonant or at the end is lost. A stressed vowel lengthens, an unstressed one becomes ə.',
+  'Rhotacism': 'z between vowels becomes ɾ.',
+  'Long-vowel chain shift': 'Long vowels rise one step and the high ones become diphthongs: iː > ei, uː > ou, eː > iː, aː > ɛː.',
+  'Fricative mergers': 'ç > ʃ and θ > f.',
+  'Unstressed reduction': 'Short unstressed non-high vowels become ə.',
+  'Labiovelar simplification': 'dw > b and tw > t.',
+  'Deaffrication': 'tʃ > ʃ and dʒ > ʒ.',
+  'Final schwa loss': 'A final ə is lost in longer words.',
+  'Coda weakening': 'Final stops become ʔ and final voiceless fricatives become h.',
+  'Tonogenesis I: coda': 'A final ʔ leaves a high tone and a final h a falling tone. Both are then lost.',
+  'Tonogenesis II: register': 'A voiced initial consonant lowers the tone of the first syllable and becomes voiceless.',
+  'Diphthong lowering': 'ei > ai, ou > au, øy > œy.',
+};
+const PART_NAMES = [['pres', 'present'], ['imp', 'imperative'], ['past', 'past'], ['ptcp', 'participle'], ['pl1', 'hymnic 1st plural'], ['pl3', 'hymnic 3rd plural']];
+
+// ------------------------------------------------------------------ set up the form
+const domainSel = $('#domain');
+domainSel.innerHTML = '<option value="">Guess from the meaning</option>' + DOMAINS.map(([g, opts]) =>
+  `<optgroup label="${esc(g)}">${opts.map(([v, n]) => `<option value="${v}">${esc(n)}</option>`).join('')}</optgroup>`).join('');
+
+function addKeys(box, target) {
+  box.innerHTML = KEYS.map(k => `<button type="button" data-k="${esc(k)}" aria-label="Insert ${k === '́' ? 'acute accent' : esc(k)}">${k === '́' ? '◌́' : esc(k)}</button>`).join('');
+  box.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    const k = b.dataset.k; const el = target;
+    const s = el.selectionStart ?? el.value.length, t = el.selectionEnd ?? el.value.length;
+    el.value = el.value.slice(0, s) + k + el.value.slice(t);
+    el.focus(); el.setSelectionRange(s + k.length, s + k.length);
+  });
+}
+addKeys($('#keys-one'), $('#root'));
+addKeys($('#keys-many'), $('#batch'));
+
+const tabs = { one: [$('#tab-one'), $('#form-one')], many: [$('#tab-many'), $('#form-many')] };
+function showTab(name) {
+  for (const [k, [t, f]] of Object.entries(tabs)) { const on = k === name; t.setAttribute('aria-selected', on); f.hidden = !on; }
+}
+$('#tab-one').addEventListener('click', () => showTab('one'));
+$('#tab-many').addEventListener('click', () => showTab('many'));
+
+// ------------------------------------------------------------------ checks
+const KNOWN = new Set(['h1', 'h2', 'h3', 'H', 'bh', 'dh', 'gh', "k'", "g'", "g'h", 'kw', 'gw', 'gwh', 'R', 'L', 'M', 'N',
+  'a', 'e', 'i', 'o', 'u', 'ā', 'ē', 'ī', 'ō', 'ū', 'p', 'b', 't', 'd', 'k', 'g', 's', 'm', 'n', 'r', 'l', 'w', 'y']);
+function unknownLetters(rootStr) {
+  const bad = new Set();
+  for (const t of C.pieTokenize(rootStr.replace(/-+$/, ''))) if (!KNOWN.has(t) && t.trim()) bad.add(t);
+  return [...bad];
+}
+const fmtScore = n => (Math.round(n * 100) / 100).toString().replace('-', '−');
+const romOf = ipa => C.rom(ipa);
+
+// ------------------------------------------------------------------ one root
+function readOne() {
+  return {
+    root: $('#root').value.trim(),
+    gloss: $('#gloss').value.trim(),
+    pos: document.querySelector('input[name=pos]:checked').value,
+    domain: domainSel.value,
+    layer: $('#layer').value,
+    stem: $('#stem').value,
+    top: Math.max(1, Math.min(12, parseInt($('#top').value, 10) || 4)),
+  };
+}
+function writeOne(q) {
+  $('#root').value = q.root || '';
+  $('#gloss').value = q.gloss || '';
+  const pos = document.querySelector(`input[name=pos][value="${q.pos || 'noun'}"]`);
+  if (pos) pos.checked = true;
+  domainSel.value = DOMAIN_NAME[q.domain] ? q.domain : '';
+  $('#layer').value = LAYERS[q.layer] ? q.layer : 'both';
+  $('#stem').value = ['o', 'a', 'i', 'u', 'n', 'root', 'as-is'].includes(q.stem) ? q.stem : '';
+  $('#top').value = q.top || 4;
+}
+function syncUrl(q) {
+  const p = new URLSearchParams();
+  p.set('root', q.root);
+  if (q.gloss) p.set('meaning', q.gloss);
+  if (q.pos !== 'noun') p.set('class', q.pos);
+  if (q.domain) p.set('domain', q.domain);
+  if (q.layer !== 'both') p.set('layer', q.layer);
+  if (q.stem) p.set('stem', q.stem);
+  if (q.top !== 4) p.set('results', q.top);
+  history.replaceState(null, '', location.pathname + '?' + p.toString());
+}
+function chainItems(c) {
+  const items = [['PIE', '*' + c.pie, 'pie'], ['early period', c.mid, 'ipa'], ['Early Pierian', c.stages[0], 'ipa']];
+  for (let k = 1; k <= 5; k++) items.push([`period ${k}`, c.stages[k], 'ipa']);
+  return items;
+}
+function renderChain(c, vertical) {
+  return `<ol class="chain ${vertical ? 'vertical fresh' : 'inline'}">` + chainItems(c).map(([lab, f, cls], i) =>
+    `<li${vertical ? ` style="animation-delay:${i * 45}ms"` : ''}><span class="stage">${esc(lab)}</span><span class="${cls}">${esc(f || '∅')}</span></li>`).join('') + '</ol>';
+}
+function renderTrace(c) {
+  const t = C.trace(c);
+  let h = '<table class="rules"><tbody>';
+  h += `<tr><th colspan="2">Early period, ${esc(C.LAYER[c.road])}</th></tr>`;
+  h += `<tr><td class="ipa">${esc(c.mid)}</td><td>from PIE <span class="serif">*${esc(c.pie)}</span></td></tr>`;
+  for (const [n, f] of t.early) h += `<tr><td class="ipa">${esc(f)}</td><td>${esc(EARLY_NAMES[n] || n)}</td></tr>`;
+  let cur = 0;
+  for (const [n, f] of t.periods) {
+    if (n === 'start') { h += `<tr><th colspan="2">Early Pierian</th></tr><tr><td class="ipa">${esc(f)}</td><td>stress is placed</td></tr>`; continue; }
+    const [num, ...rest] = n.split(':'); const name = rest.join(':');
+    if (+num !== cur) { cur = +num; h += `<tr><th colspan="2">Period ${cur}</th></tr>`; }
+    h += `<tr><td class="ipa">${esc(f)}</td><td>${esc(name)}<span class="desc">${esc(RULE_DESC[name] || '')}</span></td></tr>`;
+  }
+  if (t.periods.length === 1) h += '<tr><td colspan="2">No later change touches this form.</td></tr>';
+  return h + '</tbody></table>';
+}
+function clashes(c) {
+  const v = C.stripStress(c.stages[5]).normalize('NFC');
+  return v ? (LATE.get(v) || []) : [];
+}
+function lexLine(c, q) {
+  return [romOf(c.stages[5]), c.stages[5], q.gloss, '*' + c.pie, C.LAYER[c.road], c.stem, c.score].join('\t');
+}
+function renderCand(c, i, q) {
+  const best = i === 0;
+  const v = c.stages[5];
+  let h = `<li class="cand${best ? ' best' : ''}"><div class="rank">${i + 1}</div><div>`;
+  h += `<div class="formline"><span class="form">${v ? esc(romOf(v)) : '∅'} <span class="ipa">${esc(v || '')}</span></span></div>`;
+  h += `<p class="meta">${esc(C.LAYER[c.road])}, ${esc(c.stem)}${c.centum ? ', palatal kept as a velar' : ''} <span class="score">score ${fmtScore(c.score)}</span>${best ? '<span class="badge">best fit</span>' : ''}</p>`;
+  h += renderChain(c, best);
+  if (v) {
+    h += '<dl class="forms">';
+    if (c.pos === 'verb') {
+      const p = C.verbParts(c.source_form, c.road);
+      for (const [k, n] of PART_NAMES) h += `<dt>${n}</dt><dd><strong class="serif">${esc(romOf(p[k]))}</strong> <span class="ipa">${esc(p[k])}</span></dd>`;
+    } else {
+      const b = C.boundForms(c);
+      h += `<dt>object</dt><dd><strong class="serif">${esc(romOf(b.obj))}</strong> <span class="ipa">${esc(b.obj)}</span></dd>`;
+      h += `<dt>locative</dt><dd><strong class="serif">${esc(romOf(b.loc))}</strong> <span class="ipa">${esc(b.loc)}</span></dd>`;
+    }
+    h += '</dl>';
+  }
+  if (c.notes.length) h += '<ul class="notes">' + c.notes.map(n => `<li>${esc(n)}</li>`).join('') + '</ul>';
+  const cl = clashes(c);
+  if (cl.length) h += `<p class="clash">Already in the lexicon as <strong>${esc(romOf(v))}</strong>: ${cl.map(g => '‘' + esc(g) + '’').join(', ')}.</p>`;
+  h += `<details class="trace"><summary>Show every rule</summary>${renderTrace(c)}</details>`;
+  h += `<div class="actions"><button type="button" class="small-btn" data-copy="${esc(lexLine(c, q))}">Copy as a lexicon line</button></div>`;
+  return h + '</div></li>';
+}
+function runOne(q, push) {
+  const out = $('#out');
+  if (!q.root) { out.innerHTML = '<p class="message">Type a root first, for example <span class="serif">bʰer-</span>.</p>'; return; }
+  const bad = unknownLetters(q.root);
+  const domain = q.domain || C.guessDomain(q.gloss);
+  let cands;
+  try {
+    cands = C.build(q.root, { pos: q.pos, stem: q.stem || null, domain, roads: LAYERS[q.layer], gloss: q.gloss });
+  } catch (e) {
+    out.innerHTML = `<p class="message">This root could not be derived (${esc(e.message)}). Check it against the notation under “How to type PIE”.</p>`;
+    return;
+  }
+  if (push) syncUrl(q);
+  const shown = cands.slice(0, q.top);
+  const guessed = q.domain ? '' : ', guessed from the meaning';
+  let h = `<div class="results-head"><h2><span class="serif">*${esc(q.root)}</span>${q.gloss ? ' ‘' + esc(q.gloss) + '’' : ''}</h2>`
+    + '<button type="button" class="small-btn" id="copy-link">Copy link to these results</button></div>';
+  h += `<p class="meta">Treated as a ${POS_NAME[q.pos]} in the domain ‘${esc(DOMAIN_NAME[domain] || domain)}’${guessed}. Showing ${shown.length} of ${cands.length} result${cands.length === 1 ? '' : 's'}.</p>`;
+  if (bad.length) h += `<p class="message">These letters are not part of the PIE notation and were passed through unchanged: <span class="serif">${esc(bad.join(' '))}</span>.</p>`;
+  if (!shown.length) h += '<p class="message quiet">No results. Try both layers or another stem.</p>';
+  h += '<ol class="cands">' + shown.map((c, i) => renderCand(c, i, q)).join('') + '</ol>';
+  out.innerHTML = h;
+}
+$('#form-one').addEventListener('submit', e => { e.preventDefault(); runOne(readOne(), true); });
+
+// ------------------------------------------------------------------ many roots
+let lastBatch = [];
+function parseBatch(text) {
+  const jobs = [];
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    const parts = line.split(/\t|;|\|/).map(s => s.trim());
+    let pos = (parts[2] || 'noun').toLowerCase();
+    if (pos.startsWith('adj')) pos = 'adj'; else if (pos.startsWith('v')) pos = 'verb'; else pos = 'noun';
+    jobs.push({ root: parts[0], gloss: parts[1] || '', pos, domain: (parts[3] || '').toLowerCase() });
+  }
+  return jobs;
+}
+function runMany() {
+  const out = $('#out');
+  const jobs = parseBatch($('#batch').value);
+  const layer = $('#layer-many').value;
+  const top = Math.max(1, Math.min(5, parseInt($('#top-many').value, 10) || 1));
+  if (!jobs.length) { out.innerHTML = '<p class="message">Add at least one root, one per line.</p>'; return; }
+  lastBatch = [];
+  let rows = '';
+  const odd = [];
+  for (const j of jobs) {
+    if (unknownLetters(j.root).length) odd.push('*' + j.root);
+    const domain = DOMAIN_NAME[j.domain] ? j.domain : C.guessDomain(j.gloss);
+    let cands = [];
+    let err = '';
+    try { cands = C.build(j.root, { pos: j.pos, domain, roads: LAYERS[layer], gloss: j.gloss }).slice(0, top); }
+    catch (e) { err = e.message; }
+    if (err || !cands.length) {
+      rows += `<tr><td class="pie">*${esc(j.root)}</td><td>${esc(j.gloss)}</td><td>${POS_NAME[j.pos]}</td><td colspan="4">${err ? 'could not be derived' : 'no results'}</td></tr>`;
+      continue;
+    }
+    cands.forEach((c, k) => {
+      const v = c.stages[5];
+      lastBatch.push([j.root, j.gloss, j.pos, domain, k + 1, romOf(v), v, c.stages[0], C.LAYER[c.road], c.stem, c.score]);
+      rows += `<tr class="${k ? 'alt' : ''}"><td class="pie">${k ? '' : '*' + esc(j.root)}</td><td>${k ? '' : esc(j.gloss)}</td><td>${k ? '' : POS_NAME[j.pos]}</td>`
+        + `<td class="rom">${esc(romOf(v))}</td><td class="ipa">${esc(v)}</td><td>${esc(C.LAYER[c.road])}</td><td>${fmtScore(c.score)}</td></tr>`;
+    });
+  }
+  out.innerHTML = `<div class="results-head"><h2>${jobs.length} root${jobs.length === 1 ? '' : 's'}</h2><span class="actions">`
+    + '<button type="button" class="small-btn" id="copy-tsv">Copy as a table</button><button type="button" class="small-btn" id="save-tsv">Download as TSV</button></span></div>'
+    + '<div class="table-wrap"><table class="batch"><thead><tr><th>PIE</th><th>Meaning</th><th>Class</th><th>Pierian</th><th>IPA</th><th>Layer</th><th>Score</th></tr></thead>'
+    + `<tbody>${rows}</tbody></table></div>`
+    + (odd.length ? `<p class="message">Some roots contain letters outside the PIE notation, which were passed through unchanged: <span class="serif">${esc(odd.join(', '))}</span>.</p>` : '');
+}
+function batchTsv() {
+  const head = ['root', 'meaning', 'class', 'domain', 'rank', 'romanized', 'ipa', 'early_pierian', 'layer', 'stem', 'score'];
+  return [head, ...lastBatch].map(r => r.join('\t')).join('\n') + '\n';
+}
+$('#form-many').addEventListener('submit', e => { e.preventDefault(); runMany(); });
+
+// ------------------------------------------------------------------ copying
+async function copyText(text, btn) {
+  const old = btn.textContent;
+  try { await navigator.clipboard.writeText(text); btn.textContent = 'Copied'; }
+  catch (e) {
+    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); btn.textContent = 'Copied'; } catch (e2) { btn.textContent = 'Copy failed'; }
+    ta.remove();
+  }
+  setTimeout(() => { btn.textContent = old; }, 1500);
+}
+$('#out').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.copy) copyText(b.dataset.copy, b);
+  else if (b.id === 'copy-link') copyText(location.href, b);
+  else if (b.id === 'copy-tsv') copyText(batchTsv(), b);
+  else if (b.id === 'save-tsv') {
+    const url = URL.createObjectURL(new Blob([batchTsv()], { type: 'text/tab-separated-values;charset=utf-8' }));
+    const a = document.createElement('a'); a.href = url; a.download = 'pierian-words.tsv'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+});
+
+// ------------------------------------------------------------------ start
+const p = new URLSearchParams(location.search);
+const start = p.get('root')
+  ? { root: p.get('root'), gloss: p.get('meaning') || '', pos: p.get('class') || 'noun', domain: p.get('domain') || '',
+      layer: p.get('layer') || 'both', stem: p.get('stem') || '', top: parseInt(p.get('results'), 10) || 4 }
+  : { root: 'bʰer-', gloss: 'carry', pos: 'verb', domain: '', layer: 'both', stem: '', top: 4 };
+if (!POS_NAME[start.pos]) start.pos = 'noun';
+writeOne(start);
+runOne(readOne(), !!p.get('root'));
+})();
+</script>
+</body>
+</html>
