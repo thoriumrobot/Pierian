@@ -215,6 +215,30 @@ dl.forms { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap
 dl.forms dt { color: var(--muted); }
 dl.forms dd { margin: 0; }
 dl.forms dd .ipa { color: var(--muted); }
+
+/* declension */
+.decl { margin: 0.3rem 0 0.9rem; }
+p.house { margin: 0 0 0.45rem; font-size: 0.95rem; max-width: 62ch; }
+p.house strong { font-family: var(--serif); font-size: 1.12rem; }
+p.house .rule { color: var(--muted); }
+p.house .serif, p.house .nw { white-space: nowrap; }
+.decl .table-wrap { overflow-x: auto; }
+p.house.orphan { border-left: 3px solid var(--rule); padding-left: 0.7rem; }
+table.decl { border-collapse: collapse; font-size: 0.95rem; }
+table.decl th, table.decl td { text-align: left; vertical-align: baseline; padding: 0.22rem 1.6rem 0.22rem 0; }
+table.decl thead th { font-size: 0.85rem; font-weight: 700; color: var(--muted); padding-top: 0; }
+table.decl tbody th { font-weight: 400; font-size: 0.88rem; color: var(--muted); white-space: nowrap; }
+table.decl tbody th, table.decl tbody td { border-top: 1px solid var(--rule); }
+table.decl td strong { font-family: var(--serif); font-size: 1.1rem; white-space: nowrap; }
+table.decl td .ipa { display: block; font-size: 0.88rem; line-height: 1.25; color: var(--muted); }
+table.decl td.none { color: var(--muted); }
+p.decl-note { font-size: 0.88rem; color: var(--muted); margin: 0.45rem 0 0; max-width: 62ch; }
+@media (max-width: 520px) {
+  table.decl th, table.decl td { padding-right: 0.8rem; }
+  table.decl tbody th { white-space: normal; }
+  table.decl td strong { font-size: 1rem; }
+  table.decl td .ipa { font-size: 0.8rem; }
+}
 ul.notes { margin: 0 0 0.6rem; padding-left: 1.1rem; font-size: 0.93rem; }
 ul.notes li { margin: 0.1rem 0; }
 p.clash { font-size: 0.93rem; margin: 0 0 0.6rem; }
@@ -272,6 +296,15 @@ footer { max-width: 1180px; margin: 0 auto; padding: 0 1.5rem 2rem; color: var(-
           <label><input type="radio" name="pos" value="adj"><span>Adjective</span></label>
         </div>
       </div>
+      <div class="field" id="animacy-field">
+        <label for="animacy">Animacy</label>
+        <select id="animacy" name="animacy">
+          <option value="">Guess from the meaning</option>
+          <option value="animate">A person or animal, with a plural</option>
+          <option value="inanimate">A thing, with no plural</option>
+        </select>
+        <p class="hint">Only nouns for people and animals have a plural.</p>
+      </div>
       <div class="field">
         <label for="domain">Domain</label>
         <select id="domain" name="domain"></select>
@@ -311,7 +344,7 @@ footer { max-width: 1180px; margin: 0 auto; padding: 0 1.5rem 2rem; color: var(-
         <label for="batch">Roots, one per line</label>
         <textarea id="batch" name="batch" spellcheck="false" placeholder="bʰer-; carry; verb&#10;h₃éwis; sheep; noun; herding&#10;leuk-; light"></textarea>
         <div class="keys" id="keys-many" aria-label="Insert a character"></div>
-        <p class="hint">Each line gives the root, then optionally the meaning, the word class (noun, verb or adj) and the domain. Separate them with semicolons, tabs or vertical bars.</p>
+        <p class="hint">Each line gives the root, then optionally the meaning, the word class and the domain. Separate them with semicolons, tabs or vertical bars. The word class is noun, verb or adj; write person or animal for a noun with a plural, or thing for one without, if the meaning does not show it.</p>
       </div>
       <div class="row2">
         <div class="field">
@@ -337,8 +370,13 @@ footer { max-width: 1180px; margin: 0 auto; padding: 0 1.5rem 2rem; color: var(-
     </details>
     <details class="help">
       <summary>How results are ranked</summary>
-      <p>Every root is carried in by both layers of the inherited vocabulary. The hill layer is preferred for kin, the body, herding, animals, landscape, weather and the home, and the main layer for everything else. The domain is guessed from the meaning unless you choose one.</p>
-      <p>A result scores higher when its layer suits the meaning, when its Early Pierian form has about two syllables and no three-consonant cluster, and when it reaches period 5 as a sayable word that does not sound like an older word. Results that sound like a word already in the lexicon are flagged but not marked down. The score is a guide, not a verdict.</p>
+      <p>Every root is derived through both layers of the inherited vocabulary. The hill layer is preferred for kin, the body, herding, animals, landscape, weather and the home, and the main layer for everything else. The domain is guessed from the meaning unless you choose one.</p>
+      <p>A result scores higher when its layer suits the meaning, when its Early Pierian form has about two syllables and no three-consonant cluster, and when it reaches period 5 as a sayable word that does not sound like an older word. Results that sound like a word already in the lexicon are flagged but not marked down. The score is only a guide.</p>
+    </details>
+    <details class="help">
+      <summary>How nouns decline</summary>
+      <p>Every noun is shown with its object in <span class="serif">-ną</span>, its locative in <span class="serif">-ę</span>, <span class="serif">-vę</span> or <span class="serif">-yę</span>, and its old genitive, which survives in hymns and fixed phrases. Nouns for people and animals also have a plural in <span class="serif">-v</span>, which takes the same endings.</p>
+      <p>Nouns that decline alike form a house, named after one of its members, such as the <span class="serif">myääh</span> house (‘mountain’). Three things place a noun in its house: the change to its stem before <span class="serif">-ną</span>, any further change before the locative, and the shape of the locative. A pattern followed by four nouns or fewer makes no house, and its nouns are orphans (<span class="serif">auv</span>), as is any noun whose plural breaks the plural rules.</p>
     </details>
   </section>
 
@@ -1516,14 +1554,15 @@ function olRoad(word) {
 const toEngineForm = s => rep(NFC(s), 'ə', 'a');
 const stripStress = f => rep(f, 'ˈ', '');
 
-let LEX = [];         // [gloss, form, src]
+let LEX = [];         // [gloss, form, src, note]; note "lost" for a word that did not survive
 let LEX_INDEX = null;
 function setLexicon(lex) { LEX = lex; LEX_INDEX = null; }
 function lexIndex() {
   if (LEX_INDEX === null) {
     const idx = [{}, {}, {}, {}, {}, {}];
-    for (const [gloss, form, src] of LEX) {
-      erun(form, src).forEach((f, k) => { const key = stripStress(f); (idx[k][key] = idx[k][key] || []).push(gloss); });
+    for (const [gloss, form, src, note] of LEX) {
+      // a word that did not survive (the old conjunctions) counts for homophones at period 0 only
+      erun(form, src).forEach((f, k) => { if (k > 0 && note === 'lost') return; const key = stripStress(f); (idx[k][key] = idx[k][key] || []).push(gloss); });
     }
     LEX_INDEX = idx;
   }
@@ -1688,25 +1727,128 @@ function verbParts(sourceForm, road) {
 // bound forms of a noun before the object and locative clitics
 function boundForms(c) {
   const src = c.road === 'HS' ? 'H' : 'O';
-  return { obj: erun(c.source_form + '=nã', src)[5], loc: erun(c.source_form + '=ẽ', src)[5] };
+  const f = toEngineForm(c.source_form);
+  return { obj: erun(f + '=nã', src)[5], loc: erun(f + '=ẽ', src)[5] };
+}
+
+// ------------------------------------------------------------------ declensions (as in derive/pierian_nouns.py)
+// The full declension of a noun: free form, object, locative and old genitive, and for animate nouns the
+// plural with the same three.  The plural clitic and the genitive have become suffixes and are written
+// joined; the object and locative keep one boundary.
+const CL_OBJ = '=nã', CL_LOC = '=ẽ', CL_PL = '=wiy', CL_GEN = '=a';
+const joinCl = s => rep(NFC(s), '=', '');
+function lastClitic(s) { s = NFC(s); const k = s.lastIndexOf('='); return k < 0 ? s : rep(s.slice(0, k), '=', '') + s.slice(k); }
+function declension(c, animate) {
+  const src = c.road === 'HS' ? 'H' : 'O';
+  const f = toEngineForm(c.source_form);
+  const run = cl => erun(f + cl, src)[5];
+  const d = { road: c.road, animate: !!animate, free: joinCl(run('')), obj: lastClitic(run(CL_OBJ)), loc: lastClitic(run(CL_LOC)),
+    gen: joinCl(run(CL_GEN)), pl: '', plObj: '', plLoc: '', plGen: '' };
+  if (animate) {
+    d.pl = joinCl(run(CL_PL)); d.plObj = lastClitic(run(CL_PL + CL_OBJ));
+    d.plLoc = lastClitic(run(CL_PL + CL_LOC)); d.plGen = joinCl(run(CL_PL + CL_GEN));
+  }
+  return d;
+}
+// The house of a noun: what happens to the stem before -ną, whether the locative adds or changes
+// anything, and the shape of the locative.  A pattern with four nouns or fewer makes no house, and a noun
+// whose plural breaks the plural rules is an orphan.
+const N_TONES = ['́', '̂', '̀', '̌', '̏'];
+const N_VOW = 'aeiouyɛɔøœə';
+const LOC_SHAPES = { 'ẽ': '-ę', 'vẽ': '-vę', 'jẽ': '-yę' };
+const nplain = s => rep(rep(NFC(s), 'ˈ', ''), '=', '');
+const segOnly = s => NFC(chars(NFD(nplain(s))).filter(ch => !N_TONES.includes(ch)).join(''));
+const nolen = s => rep(segOnly(s), 'ː', '');
+const nbase = s => chars(NFD(rep(s, 'ˈ', ''))).filter(ch => !isComb(ch)).join('');
+const stemOf = s => { const k = s.lastIndexOf('='); return k < 0 ? s : s.slice(0, k); };
+function nsyllables(s) {
+  let b = nbase(s);
+  for (const dd of ['ai', 'au', 'œy', 'ei', 'ou', 'øj']) b = rep(b, dd, 'A');
+  return (b.match(/[aeiouyɛɔøœəA]/gu) || []).length;
+}
+function stemType(d) {
+  const os = stemOf(d.obj);
+  const f = segOnly(d.free), s = segOnly(os);
+  if (s === f) return nplain(d.free) !== nplain(os) ? 'tone' : 'same';
+  if (s.startsWith(f)) {
+    const add = chars(s.slice(f.length));
+    if (add.every(ch => ch === 'ː')) return 'tone';
+    return add.every(ch => (N_VOW + 'ː').includes(ch)) ? 'vowel' : 'consonant';
+  }
+  const fc = chars(f);
+  if (fc.length && 'wj'.includes(last(fc)) && s.startsWith(fc.slice(0, -1).join(''))) return 'glide';
+  return 'shift';
+}
+function locType(d) {
+  const o = nolen(stemOf(d.obj)), l = nolen(stemOf(d.loc));
+  if (o === l) return 'same';
+  if (l.startsWith(o) && chars(l.slice(o.length)).every(ch => !N_VOW.includes(ch))) return 'adds';
+  return 'changes';
+}
+function locShape(d) { const k = d.loc.lastIndexOf('='); return k < 0 ? '' : (LOC_SHAPES[NFC(d.loc.slice(k + 1))] || ''); }
+function umlautN(f) {
+  const d = NFD(NFC(f));
+  const R = [[/a([̀-ͯ]*)u/u, 'œ$1y'], [/u([̀-ͯ]*)ː/u, 'y$1ː'], [/ɛ([̀-ͯ]*)ː/u, 'e$1ː'], [/u([̀-ͯ]*)$/u, 'œ$1y']];
+  for (const [p, r] of R) if (p.test(d)) return NFC(d.replace(p, r));
+  return NFC(d);
+}
+// the plural follows the layer: main layer, bound stem + v; hill layer, one syllable ending in a vowel
+// (or n), the vowel changes before -v, or before -w where the locative has w
+function predictedPlural(d) {
+  if (!d.pl) return '';
+  const os = NFC(stemOf(d.obj));
+  if (d.road === 'HS') return os + 'v';
+  const f = NFC(d.free);
+  const b = rstrip(nbase(f), 'ː');
+  if (nsyllables(f) === 1 && (N_VOW.includes(last(chars(b)) || '#') || nbase(f).endsWith('n')))
+    return umlautN(f) + (NFC(stemOf(d.loc)).endsWith('w') ? 'w' : 'v');
+  return os + 'v';
+}
+let HOUSES = { houses: [], sigs: [], byKey: {} };
+let PERSON_W = new Set(), ANIMAL_W = new Set();
+function setHouses(h) {
+  HOUSES = { houses: h.houses, sigs: h.sigs, byKey: {} };
+  for (const x of h.houses) HOUSES.byKey[x.key] = x;
+  PERSON_W = new Set(h.person || []); ANIMAL_W = new Set(h.animal || []);
+}
+// { sig, house } for a noun in a house; { sig, reason, like, expected } for an orphan, where reason is
+// 'plural' (the plural breaks the rules), 'rare' (only the nouns in like decline this way),
+// 'new' (no noun declines this way) or 'merged' (the locative ending has merged with the stem)
+function houseOf(d) {
+  const shape = locShape(d);
+  const sig = [stemType(d), locType(d), shape];
+  const res = { sig, house: null, reason: '', like: [], expected: '' };
+  if (!shape) { res.reason = 'merged'; return res; }
+  const pp = predictedPlural(d);
+  if (d.pl && nplain(pp) !== nplain(d.pl)) { res.reason = 'plural'; res.expected = pp; return res; }
+  const g = HOUSES.sigs.find(s => s.sig.join('|') === sig.join('|'));
+  if (g && g.house) res.house = HOUSES.byKey[g.house];
+  else { res.reason = g ? 'rare' : 'new'; res.like = g ? g.like : []; }
+  return res;
+}
+// people and animals have a plural; the head word of the meaning decides, as in the script
+function guessAnimate(gloss) {
+  const w = String(gloss || '').toLowerCase().match(/[a-z]+/g) || [];
+  return !!w.length && (PERSON_W.has(w[0]) || ANIMAL_W.has(w[0]));
 }
 
 const api = { pieTokenize, pieNormalize, mainStep1, mainStep2, mainTokens, hshow, hillStep1, hillStep2, hillTokens, oshow, hillSpell,
   erun, erunTrace, etokenize, rom, romWord, build, guessDomain, preferredRoad, trace, earlyTrace, verbParts, boundForms,
-  setLexicon, hsRoad, olRoad, stripStress, OL_DOMAINS, HS_DOMAINS, LAYER, STEM_LABEL };
+  declension, houseOf, setHouses, guessAnimate, predictedPlural, setLexicon, hsRoad, olRoad, stripStress, OL_DOMAINS, HS_DOMAINS, LAYER, STEM_LABEL };
 if (typeof module !== 'undefined' && module.exports) module.exports = api;
 else root.PierianCore = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
 </script>
 <script>
-const DATA = {"lex":[["god","nīzu","H"],["heaven","nīvō","H"],["fire","bōvar","H"],["water","avō","H"],["wine","zealō","H"],["heart","heardō","H"],["soul","hūɣō","H"],["speech, language","liɣō","H"],["earth","naozō","H"],["night","naktō","H"],["darkness","orpō","H"],["bone","ostõ","H"],["child","būri","H"],["house","nuomu","H"],["horse","ezbu","H"],["blood","ezōr","H"],["mountain","mearzō","H"],["song","haonō","H"],["head","haorzō","H"],["dawn","auzō","H"],["wind","a.vī.ō","H"],["life","mīvō","H"],["truth","vīrō","H"],["lord","reazu","H"],["word","mazdō","H"],["lightning","zvealō","H"],["joy","zōvō","H"],["Sun (god), sun","hauli","H"],["fruit","mruɣu","H"],["gate","nuorō","H"],["law","leazō","H"],["people","levdō","H"],["stream","treavō","H"],["mouth","ūzõ","H"],["work","vearzō","H"],["rite","yeavō","H"],["vessel","zevdrõ","H"],["ash","azō","H"],["hymn","ũnu","H"],["vision","veiðō","H"],["torch","ayðuolō","H"],["eternity","aivõ","H"],["peace","raomō","H"],["garment","vestī","H"],["thought","meanō","H"],["pain","algu","H"],["thread","znī.ō","H"],["hound","hunu","H"],["body","gẽtõ","H"],["mother","mi.āʁ","O"],["father","pu.eiʁ","O"],["brother","vʁi.āʁ","O"],["sister","wi.ouʁ","O"],["son","ūn","O"],["daughter","ðu.wu.eiʁ","O"],["husband","pu","O"],["friend","pʁī","O"],["hand","ʒiaʁ","O"],["arm","viaʒa","O"],["foot","pou","O"],["eye","u","O"],["ear","ouw","O"],["nose","nia","O"],["tooth","u.ã","O"],["tongue (organ)","dũʒwea","O"],["knee","ʒun","O"],["liver","yiʁ","O"],["name","inumã","O"],["snow","ɲī","O"],["wolf","wuw","O"],["sheep","uw","O"],["cow","bouw","O"],["bear","auʁ","O"],["dog","wou","O"],["tree","duʁ","O"],["stone","u.mou","O"],["salt","iaw","O"],["mead","mü","O"],["path","püm","O"],["day","ʒiyn","O"],["moon, month","mei.ã","O"],["year","yeiʁ","O"],["star","u.eiʁ","O"],["field","uʒʁ","O"],["fish","pī","O"],["chieftain","u.ʁeiʒ","O"],["the old gods, mountain spirits","ʒīw","O"],["golden","zealtu","H"],["warm","gearmu","H"],["black","hearzu","H"],["red","ruðu","H"],["ancient, primordial","heanu","H"],["mortal","maortu","H"],["immortal","ãmaortu","H"],["all, every","vizu","H"],["first","brōmu","H"],["deep","nuvu","H"],["sweet","zvōðu","H"],["alone","oinu","H"],["holy","zevrō","H"],["pure","bevdō","H"],["new","ɲiw","O"],["old (of people, things)","in","O"],["dead","muʁ","O"],["great","miyia","O"],["high","viʁʒa","O"],["swift","ou.a","O"],["bright","ʎiw","O"],["kindles","ayð-i","H"],["drinks","būð-i","H"],["eats","eð-i","H"],["comes","geam-i","H"],["becomes, is born","gean-i","H"],["sings","haon-i","H"],["hears","hlūð-i","H"],["carries","mear-i","H"],["speaks","mōð-i","H"],["gives","nūð-i","H"],["stands","tōð-i","H"],["sees","veið-i","H"],["pours","zeav-i","H"],["dies","maor-i","H"],["remembers","mean-i","H"],["strikes","geal-i","H"],["seeks","hōɣ-i","H"],["walks","teiɣ-i","H"],["releases","līð-i","H"],["turns","veart-i","H"],["flows","bleav-i","H"],["conceals","heal-i","H"],["tears","near-i","H"],["purifies","beav-i","H"],["knows","ʒnou","O"],["is (copula)","ia","O"],["has, holds","iʒ-i","O"],["sleeps","w-i","O"],["lives","bīw-i","O"],["wine-fire (ecstasy)","zealobōvar","H"],["joy-giver (title of the god)","zōvonūðō","H"],["sun-born","haulozeanī","H"],["heaven-born","nīvozeanī","H"],["one","uyn","O"],["two","dwou","O"],["three","tʁi","O"],["four","geðvorez","H"],["five","bẽk","H"],["six","zvez","H"],["seven","heptã","H"],["eight","oktou","H"],["nine","neavã","H"],["ten","neaɣã","H"],["hundred","gãtõ","H"],["I","iʒou","O"],["me (object)","mei","O"],["my","miɲ","O"],["you (sg.)","tū","O"],["you (sg. object)","twei","O"],["we","wiy","O"],["us","nou","O"],["he, she, it","hao","H"],["they","haoi","H"],["not","ɲi","O"],["and","da","H"],["but","īvið","H"],["now","nū̃","H"],["when, if","yãō","H"],["yes/no question particle","ðō","H"],["who?","kwa","O"],["what?","kwi","O"],["the language: \"mountain-tongue\"","mearzoliɣō","H"]],"late":[["nâi","god"],["nâi","heaven"],["pùːv","fire"],["ɛ̂ː","water"],["ʃɛ̀ːl","wine"],["ʃɛ́ː","heart"],["au","soul"],["liw","speech, language"],["nôː","earth"],["ná","night"],["úː","darkness"],["ˈuːtõ","bone"],["pœ̀y","child"],["nwuːm","house"],["íː","horse"],["iːɾ","blood"],["mjɛ̂ː","mountain"],["oːn","song"],["ôː","head"],["ûː","dawn"],["əˈvœy","wind"],["mâi","life"],["fài","truth"],["ʁɛ̂ː","lord"],["mɛ́ː","word"],["svjɛ̀ːl","lightning"],["sȕː","joy"],["yːl","Sun (god), sun"],["pʁàu","fruit"],["nwuː","gate"],["ʎɛ̂ː","law"],["lé","people"],["tʁɛ̂ː","stream"],["ˈauɾõ","mouth"],["fjɛ̏ː","work"],["jɛ̂ː","rite"],["ˈsèvdʁõ","vessel"],["ɛ̂ː","ash"],["õn","hymn"],["fàiw","vision"],["əˈðwuːl","torch"],["ˈiːvõ","eternity"],["ʁoːm","peace"],["fǐː","garment"],["mjɛːn","thought"],["ál","pain"],["snœ̀y","thread"],["aun","hound"],["ˈʃè̃tõ","body"],["mjɛː","mother"],["pwai","father"],["fʁɛ̀ː","brother"],["wjau","sister"],["aun","son"],["θœ̀yw","daughter"],["pu","man, husband"],["pʁai","friend"],["ʃɛ̀ː","hand"],["fjèːʒ","arm"],["pau","foot"],["u","eye"],["au","ear"],["ɲa","nose"],["fà̃","tooth"],["tø̀̃ʒwj","tongue (organ)"],["ʃùn","knee"],["jai","liver"],["iˈnaumã","name"],["ɲai","snow"],["fàu","wolf"],["au","sheep"],["pàu","cow"],["uː","bear"],["fàu","dog"],["tàu","tree"],["aum","stone"],["juː","salt"],["mi","mead"],["pim","path"],["ʃàin","day"],["ˈmaiã","moon, month"],["jai","year"],["fài","star"],["au","field"],["pai","fish"],["ˈœyʁî","chieftain"],["ʃœ̀y","the old gods, mountain spirits"],["ʃǎl","golden"],["ʃɛ̀ːm","warm"],["ʃɛ̂ː","black"],["ʁau","red"],["ʃɛːn","ancient, primordial"],["móː","mortal"],["ãˈmóː","immortal"],["fȁi","all, every"],["pʁùːm","first"],["nâu","deep"],["svùːw","sweet"],["yːn","alone"],["sèvʁ","holy"],["pě","pure"],["ɲœy","new"],["in","old (of people, things)"],["mau","dead"],["maij","great"],["fàiʒ","high"],["au","swift"],["jœy","bright"],["iː","kindles"],["pœ̀y","drinks"],["ej","eats"],["ʃèːm","comes"],["ʃèːn","becomes, is born"],["øːn","sings"],["lœy","hears"],["mjeː","carries"],["myː","speaks"],["nœy","gives"],["tyː","stands"],["fài","see"],["ʃȅː","pours"],["møː","die"],["mjeːn","remembers"],["ʃèːl","strikes"],["yː","seeks"],["tai","walks"],["lai","release, let go, leave, forgive"],["fjěː","turns"],["pʎȅː","flows"],["ʃeːl","conceals"],["ɲeː","tears"],["ʃnàu","knows"],["ja","be (copula)"],["âi","has, holds"],["fì","sleeps"],["pàiw","lives"],["mŷː","ecstasy"],["sə̀vˈnau","joy-giver (title of the god)"],["əlˈʒeːn","sun-born"],["nivˈʒeːn","heaven-born"],["œyn","one"],["pàu","two"],["tʁi","three"],["ʃə̀ðˈvuːʁə̂","four"],["pě̃","five"],["svȅ","six"],["ˈeptã","seven"],["ó","eight"],["ˈɲɛːvã","nine"],["ɲãː","ten"],["ˈkà̃tõ","hundred"],["âi","I"],["mai","me (object)"],["miɲ","my"],["tau","you (sg.)"],["tai","you (sg. object)"],["fài","we"],["nau","us"],["ɔ","he, she, it"],["yː","they"],["ɲi","not"],["tà","and"],["ˈaivî","but"],["nõː","now"],["jãw","when, if"],["θùː","yes/no question particle"],["kwa","who?"],["kwi","what?"],["ʃě̃","grief, mourning"],["ʃỳː","heed, attend to"],["pjeː","look closely, notice"],["kùːw","glad, content, happy"],["ˈnaiõ","fear"],["pjuː","hope"],["ˈiːɾõ","shame"],["lŷː","love, cherish"],["ʁyː","weep"],["tɛ̀ː","tear (drop)"],["mjɛːl","soft, gentle"],["tìːl","endure, suffer"],["nwyː","harm, injure"],["iˈwail","wound"],["mjɛj","heal, tend"],["ˈnaiɾõ","shape, form"],["ʃèː","make, do"],["tȉː","fashion, build with skill"],["maiw","change, move"],["pʁèː","break"],["ˈãtõ","end, edge"],["ɛ́ː","what is fitting, right order"],["svèw","custom, habit, way of life"],["sě̃","birth, nature, kind"],["ẫ","being, what is (true)"],["pjɛːl","story, tale"],["fȉː","good"],["nœ̂y","ill, evil, harm"],["nʁyːw","lie, deceit"],["əˈʎay","other"],["svỳː","self, own"],["ʃɛːm","same, one and the same"],["pjɛ̏ː","small, few"],["smàu","human being"],["ˈʃɛ̀ːlõ","servant, tender"],["pjɛ̀ːn","poor, toiling"],["ˈuːvõ","wealth, plenty"],["ʃùː","hunger, want"],["paij","bread, cooked food"],["ʃàiʎ","cold"],["kõː","shadow, shade"],["ˈfàiɾõ","town, settlement"],["fìːn","sale, market"],["kʁài","buy"],["pìːl","sell"],["ˈɛːɾõ","silver, coin"],["ɲɛ̂l","owe, must"],["ʃè̃j","weary, toil"],["nễ","teach, learn"],["ʃɛ̀j","ask, pray for"],["svìː","answer"],["nai","show, point out"],["ai","go"],["ɲêː","return home"],["ʃɛj","sit, stay"],["pjɛ̀j","fall"],["fìːl","want, will"],["møːj","be able, may"],["lyː","wash"],["pi","cook"],["ɲeːm","build"],["pjèː","pass, go beyond"],["lyːw","light"],["ʃɛːl","hidden, secret"],["ʃìːl","call, summon"],["əˈnai","blame, reproach"],["lai","let go, forgive"],["nyː","share, divide"],["ʁai","count, reckon"],["ʁai","reckoning, reason"],["ɛːl","ripe, mature"],["ʃùː","dear, beloved"],["smœ̀y","wonder, marvel"],["ˈnavnõ","feast, sacrificial meal"],["ʃiː","cup"],["fàij","cloth, garment"],["ˈauã","hearth"],["ˈnaiã","rope, bond"],["plùːw","whip, blow"],["nẽˈpwøj","master of a house"],["fȅ","voice"],["ʃě̃","mourn, grieve"],["ˈɛːvõ","back; after, behind (postposition)"],["nŷː","dull, blind"],["ˈʃɛ̀ːnõ","string (of an instrument); tone"],["svìːn","sound"],["tʁȅː","tread (grapes)"],["ˈiːɾõ","harvest, vintage; autumn"],["ˈfùlwã","leaf"],["êː","bird"],["iˈwâi","widow"],["auv","orphan"],["mail","grind"],["kěː","guest, stranger"],["ʃaw","roof"],["θœ̀yʒ","wall"],["fùːn","empty"],["mjeːn","remain, stay"],["ˈaumã","shoulder"],["ʃeː","cut, reap"],["pjai","rest, be still"],["pjɛ̌ː","strait, crossing; the Strait (the old kingdom)"],["ˈpà̃tû","passage, gallery"],["eːl","wander, travel"],["eː","fit, join; tune"],["aiɾ","iron; hull-metal"],["ʁyːw","rust, corrosion"],["naum","smoke, smog, fumes"],["uːn","dream"],["mái","wage, pay"],["fìː","guard, watch over"],["tẽj","roar, drone (of engines)"],["snàiv","sinew; cable"],["fàiɲ","strike, shoot"],["ʃèl","cell, capsule room"],["kʎɛ̏ː","rumour, news"],["fjà","shine, glow"],["ʃɛ̏ː","heat"],["svỳːw","sweat"],["ˈʃɛːvõ","mask, cover"],["kʁȅː","grab, snatch"],["fèj","lead away, abduct"],["pèj","fly"],["iˈʁau","copper"],["ˈõgəl","ember; spark"],["mœ̂l","bag, sack"],["jỗː","young"],["œ̂y","hate"],["pʁœ̀y","free"],["mej","dig; bury"],["kʁàu","heavy"],["lé̃","light (in weight)"],["ʎêː","gather, read (a tally or a roll)"],["ɲaw","corpse"],["nâ","vigil, night watch"],["maiɲ","wait"],["pȁi","write"],["ʃàiw","burn"],["kʁỳːw","crooked, out of true"],["pʎɛ̏ː","fold; a ksost that is larger inside than outside"],["ˈaiə̂","ice"],["taiw","step; a step in a proof"],["ɛ̃j","breathe"],["sìːl","laugh"],["uːl","beauty"],["tȕː","sacred silence"],["smỳː","smile, laughter"],["svjɛ̏ː","sleep"],["əmˈwuːn","harmony, music"],["kùːm","cosmos, world"],["aul","matter, stuff"],["nuˈbuːv","mind-fire, intellect"],["mé","awakening"],["ˈmaiðʁõ","measure"],["ɲɛ̂ː","gaze"],["mé̃","chain"],["laiw","release, forgetting"],["əimˈjɛːn","remembrance, anamnesis"],["ˈpỳːnî","the First Light (Phanes)"],["nəbəˈʒaw","the Ineffable"],["nəsəˈsîː","ferment-vat"],["sittəˈlɛ̂ː","sacred grove"],["kənnulˈlîː","grain offering"],["pě","purifier, priest"],["fjɛ̌ː","worker"],["snàu","knower, sage"],["tǐː","craftsman, maker"],["sə̀lˈʒɛːvõ","wine-pourer, hierophant"],["ʃál","concealed"],["nəvˈʒaw","unseeable"],["ʃȅː","seize, take"],["ʃeː","follow"],["kly̏ː","close"],["fjèː","open"],["pʎèː","weave"],["nøːl","protect"],["îː","offer"],["mé̃","bind"],["fjȅː","wear"],["əˈʒeː","rouse, wake"],["ʁêː","direct, plan"],["pjêː","scatter"],["ty̏ː","be silent"],["ễ","send"],["tʁèːm","tremble"],["plài","fill"],["pȍ","then"],["ɛj","again"],["ŷː","merely"],["õː","therefore"],["new","down"],["ɛːn","up"],["ʃâ","hither"],["ʃɛ̀ːn","thither"],["svìː","as, like"],["θài","that (complementizer)"],["aiw","behold!"],["uː","O! (vocative)"],["mai","do not (prohibitive)"],["ê","from"],["pìː","through"],["ɛ́̃","in exchange for"],["ˈpʁùːmõ","first"],["pàiɲ","woman, wife"],["fǎi","evening"],["θwài","door"],["ʃùˈʁaunã","grain"],["maiʒ","middle"],["mauʁ","many"],["ˈpœyjin","full"],["nauw","naked"],["mẽ","think"],["pjɛː","feed, guard"],["jâi","lie down"],["ʃài","place, put"],["pài","praise"],["fȅ̃","bind"],["i","which, who (relative)"],["ɲi","not"],["œy","your (sg)"],["œyj","our"],["fè̃","strike dead, kill"],["i","this (proximal)"],["u","that (distal)"],["ˈaijẽ","here"],["ˈauvẽ","there"],["ˈkwaijẽ","where?"],["ej","also, even"],["tœyv","you (pl)"],["sə̀lənˈwuːm","wine-house, tavern"],["ʃə̀lnəsəˈsîː","wine-vat"],["ˈnaiɾuvə nwəm","temple"],["mjəɾəˈliw","Pierian, in the language's own name (literally 'mountain-tongue')"],["mjəɾəˈlé","People of the Strait, in their own name (literally 'mountain-people')"],["ˈpjɛ̀ːtuv lé","the people of the Strait (old genitive phrase, used in rites)"],["kâ","coffee"],["koːm","charter, licence; the papers a company travels on"],["mî","lord (title for a Laulai, used in place of tau)"],["ˈsẽmî","child lord"],["ˈtẽsi","ratio (in tuning)"],["ˈtìtẽsi","the octave, 2:1"],["ˈtʁitẽsi","the fifth, 3:2"],["ˈtʁatẽsi","the fourth, 4:3"],["séʁ","true interval, a ratio that does work"],["kəˈsó","ksost, one of the crooked ones from outside the limit"],["fó","slave"],["laulai","a Laulai; the Laulai"],["maʁ","question particle, in questions put to a Laulai"],["məˈnemî","general, war-lord: a former child lord who commands"],["məˈneka","the War, the war-shrine of the second guild"],["ˈmãska","the Order, the ninth guild"],["soːm","the reach, the power to hold a figure and put force through it"],["saːn","wandering tone, the sound of a ksost"],["ʁáu","censor of the ninth guild"],["ˈsẽlâ","the levy of children for the war-shrine"],["ʃɛ̀ːl tàu","vine (literally 'wine tree')"],["ʃɛ̀ːl pʁàu","grape (literally 'wine fruit')"],["əˈvœy pim","air duct, vent (literally 'wind path')"],["aiɾ ʃaw","hull, seen from inside (literally 'iron roof')"],["fài ˈpà̃tû","lamp gallery, the lit market gallery (literally 'star passage')"],["ʃèl mjɛ̂ː","capsule block (literally 'cell mountain')"],["uːn ɛ̂ː","dream-water, a narcotic drink"],["mái lé","day labourers hired by the shift (literally 'wage people')"],["kʎɛ̏ː pim","the gossip that runs between holds (literally 'rumour path')"],["naum əˈvœy","foul air from the lower vents (literally 'smoke wind')"],["iˈnaumã mé̃","roll, register of persons (literally 'name chain')"],["nâu ˈpà̃tû","the deep galleries, where poor Laulai live"],["pœ̀y fìːn","the levy, as the People call it (literally 'child market')"],["nâi θœ̀yʒ","the firmament, the wall round the system (literally 'heaven wall')"],["fùːn ʃiː","a Laulai with no reach; calque of Laulai tas 'empty; cup'"],["ɲãː liw","tkalok, the register of proof (literally 'ten speech')"],["ɛ̂ː lé","burnt child lords (literally 'ash people')"],["ʁai lé","the Ledgers, the second guild (literally 'reckoning people')"],["kʁỳːw sě̃","crookedness, the crooking (Laulai mamn)"]]};
+const DATA = {"lex":[["god","nīzu","H"],["heaven","nīvō","H"],["fire","bōvar","H"],["water","avō","H"],["wine","zealō","H"],["heart","heardō","H"],["soul","hūɣō","H"],["speech, language","liɣō","H"],["earth","naozō","H"],["night","naktō","H"],["darkness","orpō","H"],["bone","ostõ","H"],["child","būri","H"],["house","nuomu","H"],["horse","ezbu","H"],["blood","ezōr","H"],["mountain","mearzō","H"],["song","haonō","H"],["head","haorzō","H"],["dawn","auzō","H"],["wind","a.vī.ō","H"],["life","mīvō","H"],["truth","vīrō","H"],["lord","reazu","H"],["word","mazdō","H"],["lightning","zvealō","H"],["joy","zōvō","H"],["Sun (god), sun","hauli","H"],["fruit","mruɣu","H"],["gate","nuorō","H"],["law","leazō","H"],["people","levdō","H"],["stream","treavō","H"],["mouth","ūzõ","H"],["work","vearzō","H"],["rite","yeavō","H"],["vessel","zevdrõ","H"],["ash","azō","H"],["hymn","ũnu","H"],["vision","veiðō","H"],["torch","ayðuolō","H"],["eternity","aivõ","H"],["peace","raomō","H"],["garment","vestī","H"],["thought","meanō","H"],["pain","algu","H"],["thread","znī.ō","H"],["hound","hunu","H"],["body","gẽtõ","H"],["mother","mi.āʁ","O"],["father","pu.eiʁ","O"],["brother","vʁi.āʁ","O"],["sister","wi.ouʁ","O"],["son","ūn","O"],["daughter","ðu.wu.eiʁ","O"],["husband","pu","O"],["friend","pʁī","O"],["hand","ʒiaʁ","O"],["arm","viaʒa","O"],["foot","pou","O"],["eye","u","O"],["ear","ouw","O"],["nose","nia","O"],["tooth","u.ã","O"],["tongue (organ)","dũʒwea","O"],["knee","ʒun","O"],["liver","yiʁ","O"],["name","inumã","O"],["snow","ɲī","O"],["wolf","wuw","O"],["sheep","uw","O"],["cow","bouw","O"],["bear","auʁ","O"],["dog","wou","O"],["tree","duʁ","O"],["stone","u.mou","O"],["salt","iaw","O"],["mead","mü","O"],["path","püm","O"],["day","ʒiyn","O"],["moon, month","mei.ã","O"],["year","yeiʁ","O"],["star","u.eiʁ","O"],["field","uʒʁ","O"],["fish","pī","O"],["chieftain","u.ʁeiʒ","O"],["the old gods, mountain spirits","ʒīw","O"],["golden","zealtu","H"],["warm","gearmu","H"],["black","hearzu","H"],["red","ruðu","H"],["ancient, primordial","heanu","H"],["mortal","maortu","H"],["immortal","ãmaortu","H"],["all, every","vizu","H"],["first","brōmu","H"],["deep","nuvu","H"],["sweet","zvōðu","H"],["alone","oinu","H"],["holy","zevrō","H"],["pure","bevdō","H"],["new","ɲiw","O"],["old (of people, things)","in","O"],["dead","muʁ","O"],["great","miyia","O"],["high","viʁʒa","O"],["swift","ou.a","O"],["bright","ʎiw","O"],["kindles","ayð-i","H"],["drinks","būð-i","H"],["eats","eð-i","H"],["comes","geam-i","H"],["becomes, is born","gean-i","H"],["sings","haon-i","H"],["hears","hlūð-i","H"],["carries","mear-i","H"],["speaks","mōð-i","H"],["gives","nūð-i","H"],["stands","tōð-i","H"],["sees","veið-i","H"],["pours","zeav-i","H"],["dies","maor-i","H"],["remembers","mean-i","H"],["strikes","geal-i","H"],["seeks","hōɣ-i","H"],["walks","teiɣ-i","H"],["releases","līð-i","H"],["turns","veart-i","H"],["flows","bleav-i","H"],["conceals","heal-i","H"],["tears","near-i","H"],["purifies","beav-i","H"],["knows","ʒnou","O"],["is (copula)","ia","O"],["has, holds","iʒ-i","O"],["sleeps","w-i","O"],["lives","bīw-i","O"],["wine-fire (ecstasy)","zealobōvar","H"],["joy-giver (title of the god)","zōvonūðō","H"],["sun-born","haulozeanī","H"],["heaven-born","nīvozeanī","H"],["one","uyn","O"],["two","dwou","O"],["three","tʁi","O"],["four","geðvorez","H"],["five","bẽk","H"],["six","zvez","H"],["seven","heptã","H"],["eight","oktou","H"],["nine","neavã","H"],["ten","neaɣã","H"],["hundred","gãtõ","H"],["I","iʒou","O"],["me (object)","mei","O"],["my","miɲ","O"],["you (sg.)","tū","O"],["you (sg. object)","twei","O"],["we","wiy","O"],["us","nou","O"],["he, she, it","hao","H"],["they","haoi","H"],["not","ɲi","O"],["and","da","H","lost"],["but","īvið","H","lost"],["now","nū̃","H"],["when, if","yãō","H","lost"],["yes/no question particle","ðō","H"],["who?","kwa","O"],["what?","kwi","O"],["the language: \"mountain-tongue\"","mearzoliɣō","H"]],"late":[["nâi","god"],["nâi","heaven"],["pùːv","fire"],["ɛ̂ː","water"],["ʃɛ̀ːl","wine"],["ʃɛ́ː","heart"],["au","soul"],["liw","speech, language"],["nôː","earth"],["ná","night"],["úː","darkness"],["ˈuːtõ","bone"],["pœ̀y","child"],["nwuːm","house"],["íː","horse"],["iːɾ","blood"],["mjɛ̂ː","mountain"],["oːn","song"],["ôː","head"],["ûː","dawn"],["əˈvœy","wind"],["mâi","life"],["fài","truth"],["ʁɛ̂ː","lord, member of a neighbourhood council"],["mɛ́ː","word"],["svjɛ̀ːl","lightning"],["sȕː","joy"],["yːl","Sun (god), sun"],["pʁàu","fruit"],["nwuː","gate"],["ʎɛ̂ː","law"],["lé","people, gang, crowd"],["tʁɛ̂ː","stream"],["ˈauɾõ","mouth"],["fjɛ̏ː","work"],["jɛ̂ː","rite"],["ˈsèvdʁõ","vessel"],["ɛ̂ː","ash"],["õn","hymn"],["fàiw","vision"],["əˈðwuːl","torch"],["ˈiːvõ","eternity"],["ʁoːm","peace"],["fǐː","garment"],["mjɛːn","thought"],["ál","pain"],["snœ̀y","thread"],["aun","hound"],["ˈʃè̃tõ","body"],["mjɛː","mother"],["pwai","father"],["fʁɛ̀ː","brother"],["wjau","sister"],["aun","son"],["θœ̀yw","daughter"],["pu","man, husband"],["pʁai","friend"],["ʃɛ̀ː","hand"],["fjèːʒ","arm"],["pau","foot"],["u","eye"],["au","ear"],["ɲa","nose"],["fà̃","tooth"],["tø̀̃ʒwj","tongue (organ)"],["ʃùn","knee"],["jai","liver"],["iˈnaumã","name"],["ɲai","snow"],["fàu","wolf"],["au","sheep"],["pàu","cow"],["uː","bear"],["fàu","dog"],["tàu","tree"],["aum","stone"],["juː","salt"],["mi","mead"],["pim","path"],["ʃàin","day"],["ˈmaiã","moon, month"],["jai","year"],["fài","star"],["au","field"],["pai","fish"],["ˈœyʁî","chieftain"],["ʃœ̀y","the old gods, mountain spirits"],["ʃǎl","golden"],["ʃɛ̀ːm","warm"],["ʃɛ̂ː","black"],["ʁau","red"],["ʃɛːn","ancient, primordial"],["móː","mortal"],["ãˈmóː","immortal"],["fȁi","all, every"],["pʁùːm","first"],["nâu","deep"],["svùːw","sweet"],["yːn","alone"],["sèvʁ","holy"],["pě","pure"],["ɲœy","new"],["in","old (of people, things)"],["mau","dead"],["maij","great"],["fàiʒ","high"],["au","swift"],["jœy","bright"],["iː","kindles"],["pœ̀y","drinks"],["ej","eats"],["ʃèːm","comes"],["ʃèːn","becomes, is born"],["øːn","sings"],["lœy","hears"],["mjeː","carries"],["myː","speaks"],["nœy","gives"],["tyː","stands"],["fài","see"],["ʃȅː","pours"],["møː","die"],["mjeːn","remembers"],["ʃèːl","strikes"],["yː","seeks"],["tai","walks"],["lai","release, let go, leave, finish, forgive"],["fjěː","turns"],["pʎȅː","flows"],["ʃeːl","conceals"],["ɲeː","tears"],["ʃnàu","knows"],["ja","be (copula)"],["âi","has, holds"],["fì","sleeps"],["pàiw","lives"],["mŷː","ecstasy"],["sə̀vˈnau","Zëvnau, the god (literally 'joy-giver')"],["əlˈʒeːn","sun-born"],["nivˈʒeːn","heaven-born"],["œyn","one"],["pàu","two"],["tʁi","three"],["ʃə̀ðˈvuːʁə̂","four"],["pě̃","five"],["svȅ","six"],["ˈeptã","seven"],["ó","eight"],["ˈɲɛːvã","nine"],["ɲãː","ten"],["ˈkà̃tõ","hundred"],["âi","I"],["mai","me (object)"],["miɲ","my"],["tau","you (sg.)"],["tai","you (sg. object)"],["fài","we"],["nau","us"],["ɔ","he, she, it"],["yː","they"],["ɲi","not"],["nõː","now"],["θùː","yes/no question particle"],["kwa","who?"],["kwi","what?"],["ʃě̃","grief, mourning"],["ʃỳː","heed, attend to"],["pjeː","look closely, notice"],["kùːw","glad, content, happy"],["ˈnaiõ","fear"],["pjuː","hope"],["ˈiːɾõ","shame"],["lŷː","love, cherish"],["ʁyː","weep"],["tɛ̀ː","tear (drop)"],["mjɛːl","soft, gentle"],["tìːl","endure, suffer"],["nwyː","harm, injure"],["iˈwail","wound"],["mjɛj","heal, tend"],["ˈnaiɾõ","shape, form"],["ʃèː","make, do"],["tȉː","fashion, build with skill; make (a work of art)"],["maiw","change, move"],["pʁèː","break"],["ˈãtõ","end, edge"],["ɛ́ː","what is fitting, right order"],["svèw","custom, habit, way of life"],["sě̃","birth, nature, kind"],["ẫ","being, what is (true)"],["pjɛːl","story, tale"],["fȉː","good"],["nœ̂y","ill, evil, harm"],["nʁyːw","lie, deceit"],["əˈʎay","other"],["svỳː","self, own"],["ʃɛːm","same, one and the same"],["pjɛ̏ː","small, few"],["smàu","human being"],["ˈʃɛ̀ːlõ","servant, tender"],["pjɛ̀ːn","poor, toiling"],["ˈuːvõ","wealth, plenty"],["ʃùː","hunger, want"],["paij","bread, cooked food"],["ʃàiʎ","cold"],["kõː","shadow, shade"],["ˈfàiɾõ","town, settlement"],["fìːn","sale, market"],["kʁài","buy"],["pìːl","sell"],["ˈɛːɾõ","silver, coin"],["ɲɛ̂l","owe, must"],["ʃè̃j","weary, toil"],["nễ","teach, learn"],["ʃɛ̀j","ask, pray for"],["svìː","answer"],["nai","show, point out"],["ai","go"],["ɲêː","return home"],["ʃɛj","sit, stay"],["pjɛ̀j","fall"],["fìːl","want, will"],["møːj","be able, may"],["lyː","wash"],["pi","cook"],["ɲeːm","build"],["pjèː","pass, go beyond"],["lyːw","light"],["ʃɛːl","hidden, secret"],["ʃìːl","call, summon"],["əˈnai","blame, reproach"],["nyː","share, divide"],["ʁai","count, reckon"],["ʁai","reckoning, reason"],["ɛːl","ripe, mature"],["ʃùː","dear, beloved"],["smœ̀y","wonder, marvel"],["ˈnavnõ","feast, sacrificial meal"],["ʃiː","cup"],["fàij","cloth, garment"],["ˈauã","hearth"],["ˈnaiã","rope, bond"],["plùːw","whip, blow"],["nẽˈpwøj","master of a house"],["fȅ","voice"],["ʃě̃","mourn, grieve"],["ˈɛːvõ","back; after, behind (postposition)"],["nŷː","dull, blind"],["ˈʃɛ̀ːnõ","string (of an instrument); tone"],["svìːn","sound"],["tʁȅː","tread (grapes)"],["ˈiːɾõ","harvest, vintage; autumn"],["ˈfùlwã","leaf"],["êː","bird"],["iˈwâi","widow"],["auv","orphan"],["mail","grind"],["kěː","guest, stranger"],["ʃaw","roof"],["θœ̀yʒ","wall"],["fùːn","empty"],["mjeːn","remain, stay"],["ˈaumã","shoulder"],["ʃeː","cut, reap"],["pjai","rest, be still"],["pjɛ̌ː","strait, crossing; the Strait (the old kingdom)"],["ˈpà̃tû","passage, gallery"],["eːl","wander, travel"],["eː","fit, join; tune"],["aiɾ","iron; hull-metal"],["ʁyːw","rust, corrosion"],["naum","smoke, smog, fumes"],["uːn","dream"],["mái","wage, pay"],["fìː","guard, watch over"],["tẽj","roar, drone (of engines)"],["snàiv","sinew; cable"],["fàiɲ","strike, shoot"],["ʃèl","cell, capsule room"],["kʎɛ̏ː","rumour, news"],["fjà","shine, glow"],["ʃɛ̏ː","heat"],["svỳːw","sweat"],["ˈʃɛːvõ","mask, cover"],["kʁȅː","grab, snatch"],["fèj","lead away, abduct"],["pèj","fly"],["iˈʁau","copper"],["ˈõgəl","ember; spark"],["mœ̂l","bag, sack"],["jỗː","young"],["œ̂y","hate"],["pʁœ̀y","free"],["mej","dig; bury"],["kʁàu","heavy"],["lé̃","light (in weight)"],["ʎêː","gather, read (a tally or a roll)"],["ɲaw","corpse"],["nâ","vigil, night watch"],["maiɲ","wait"],["pȁi","write; cut a mark, paint"],["ʃàiw","burn"],["kʁỳːw","crooked, out of true"],["pʎɛ̏ː","fold; a ksost that is larger inside than outside"],["ˈaiə̂","ice"],["taiw","step; a step in a proof"],["ɛ̃j","breathe"],["sìːl","laugh"],["uːl","beauty"],["tȕː","sacred silence"],["smỳː","smile, laughter"],["svjɛ̏ː","sleep"],["əmˈwuːn","harmony, music"],["kùːm","cosmos, world"],["aul","matter, stuff"],["nuˈbuːv","mind-fire, intellect"],["mé","awakening"],["ˈmaiðʁõ","measure"],["ɲɛ̂ː","gaze"],["mé̃","chain"],["laiw","release, forgetting"],["əimˈjɛːn","remembrance, anamnesis"],["ˈpỳːnî","the First Light (title of Zëvnau)"],["nəbəˈʒaw","the Ineffable (title of Zëvnau)"],["nəsəˈsîː","ferment-vat"],["sittəˈlɛ̂ː","sacred grove"],["kənnulˈlîː","grain offering"],["pě","purifier, priest"],["fjɛ̌ː","worker"],["snàu","knower, sage"],["tǐː","craftsman, maker; artist"],["sə̀lˈʒɛːvõ","wine-pourer, hierophant"],["ʃál","concealed"],["nəvˈʒaw","unseeable"],["ʃȅː","seize, take"],["ʃeː","follow"],["kly̏ː","close"],["fjèː","open"],["pʎèː","weave"],["nøːl","protect"],["îː","offer"],["mé̃","bind, fetter"],["fjȅː","wear"],["əˈʒeː","rouse, wake"],["ʁêː","direct, plan"],["pjêː","scatter"],["ty̏ː","be silent"],["ễ","send"],["tʁèːm","tremble"],["plài","fill"],["pȍ","then"],["ɛj","again"],["ŷː","merely"],["õː","therefore"],["new","down"],["ɛːn","up"],["ʃâ","hither"],["ʃɛ̀ːn","thither"],["svìː","as, like"],["θài","that (complementizer)"],["aiw","behold!"],["uː","O! (vocative)"],["mai","do not (prohibitive)"],["ê","from"],["pìː","through"],["ɛ́̃","in exchange for"],["ˈpʁùːmõ","first"],["pàiɲ","woman, wife"],["fǎi","evening"],["θwài","door"],["ʃùˈʁaunã","grain"],["maiʒ","middle"],["mauʁ","many"],["ˈpœyjin","full"],["nauw","naked"],["mẽ","think"],["pjɛː","feed, guard"],["jâi","lie down"],["ʃài","place, put"],["pài","praise, give thanks for; thanks!"],["fȅ̃","tie, tether"],["i","which, who (relative)"],["ɲi","not"],["œy","your (sg)"],["œyj","our"],["fè̃","strike dead, kill"],["i","this (proximal)"],["u","that (distal)"],["ˈaijẽ","here"],["ˈauvẽ","there"],["ˈkwaijẽ","where?"],["ej","also, even"],["tœyv","you (pl)"],["sə̀lənˈwuːm","wine-house, tavern"],["ʃə̀lnəsəˈsîː","wine-vat"],["ˈnaiɾuvə nwəm","temple"],["mjəɾəˈliw","Pierian, in its religious name (literally 'mountain speech')"],["mjəɾəˈlé","the Myëřëleq, the Zhüüą as an ethnic group (literally 'mountain people'; also heard as 'mountain gang, hill bandits')"],["ˈpjɛ̀ːtuv lé","the Byäätuv leq, the Zhüüą as a secular community (now heard as 'Pierian gang'; old genitive phrase)"],["kâ","coffee"],["koːm","papers, certificate; the pass a household is moved on"],["mî","lord (title for a Laulai, used in place of tau)"],["ˈsẽmî","child lord"],["ˈtẽsi","ratio (in tuning)"],["ˈtìtẽsi","the octave, 2:1"],["ˈtʁitẽsi","the fifth, 3:2"],["ˈtʁatẽsi","the fourth, 4:3"],["séʁ","true interval, a ratio that does work"],["kəˈsó","ksost, one of the crooked ones from outside the limit"],["fó","slave"],["ˈlaulai","a Laulai; the Laulai"],["maʁ","question particle, in questions put to a Laulai"],["məˈnemî","general, war-lord: a former child lord who commands"],["məˈneka","the War, the war-shrine of the second guild"],["ˈmãska","the Order, the ninth guild"],["soːm","the reach, the power to hold a figure and put force through it"],["saːn","wandering tone, the sound of a ksost"],["ʁáu","censor of the ninth guild"],["ˈsẽlâ","the levy of children for the war-shrine"],["ká","climber, someone who decorates Pierian with Laulai words (from Laulai kat 'and')"],["ʃɛ̀ːl tàu","vine (literally 'wine tree')"],["ʃɛ̀ːl pʁàu","grape (literally 'wine fruit')"],["əˈvœy pim","air duct, vent (literally 'wind path')"],["aiɾ ʃaw","hull, seen from inside (literally 'iron roof')"],["fài ˈpà̃tû","lamp gallery, the lit market gallery (literally 'star passage')"],["ʃèl mjɛ̂ː","capsule block (literally 'cell mountain')"],["uːn ɛ̂ː","dream-water, a narcotic drink"],["mái lé","day labourers hired by the shift (literally 'wage people')"],["kʎɛ̏ː pim","the gossip that runs between holds (literally 'rumour path')"],["naum əˈvœy","foul air from the lower vents (literally 'smoke wind')"],["iˈnaumã mé̃","roll, register of persons (literally 'name chain')"],["nâu ˈpà̃tû","the deep galleries, where poor Laulai live"],["pœ̀y fìːn","the levy, as the Zhüüą call it (literally 'child market')"],["nâi θœ̀yʒ","the firmament, the wall round the system (literally 'heaven wall')"],["fùːn ʃiː","a Laulai with no reach; calque of Laulai tas 'empty; cup'"],["ɲãː liw","tkalok, the register of proof (literally 'ten speech')"],["ɛ̂ː lé","burnt child lords (literally 'ash people')"],["ʁai lé","the Ledgers, the second guild (literally 'reckoning people')"],["kʁỳːw sě̃","crookedness, the crooking (Laulai mamn)"],["ʃɛːl pim","crawlway, a hidden way through the structure of a hold (literally 'hidden path')"],["nwuːm iˈnaumã","house name, a household's mark, cut into plating and memorial stones"],["fèl","or, whichever you like (postposition; the imperative of viil 'want')"],["ˈθwàiʁẽ","outside; apart from, except; except that, but (postposition; old locative of dhwai 'door')"],["ɛːn ej","although, even though (after a participle)"]],"houses":{"houses":[{"key":"heed.vn","rom":"zhüüą","eng":"listener","rule":"the bound stem is the free form; locative -yę; genitive in -y","nouns":11,"verbal":96,"obj":"zhüüą-ną","loc":"zhüüą-yę","gen":"zhüüąy","sig":["same","same","-yę"]},{"key":"mountain","rom":"myääh","eng":"mountain","rule":"a lost consonant and a vowel return and the tone levels; locative -vę; genitive in -v","nouns":41,"verbal":0,"obj":"myääřë-ną","loc":"myääřë-vę","gen":"myääřëv","sig":["consonant","same","-vę"]},{"key":"vessel","rom":"zevdrǫ","eng":"hold","rule":"the bound stem is the free form; locative -vę; genitive in -v","nouns":40,"verbal":0,"obj":"zevdrǫ-ną","loc":"zevdrǫ-vę","gen":"zevdrǫv","sig":["same","same","-vę"]},{"key":"wine","rom":"zhääl","eng":"wine","rule":"the bound stem adds a vowel, ë or u; locative -vę; genitive in -v","nouns":24,"verbal":0,"obj":"zhäälë-ną","loc":"zhäälë-vę","gen":"zhäälëv","sig":["vowel","same","-vę"]},{"key":"mother","rom":"myää","eng":"mother","rule":"the bound stem is the free form; the locative restores r or w and takes -ę; the genitive ends in the same consonant","nouns":17,"verbal":0,"obj":"myää-ną","loc":"myäär-ę","gen":"myäär","sig":["same","adds","-ę"]},{"key":"speech","rom":"liw","eng":"speech","rule":"the final glide becomes a vowel (-w > -u or -ë); locative -vę; genitive in -v","nouns":14,"verbal":0,"obj":"lië-ną","loc":"lië-vę","gen":"liëv","sig":["glide","same","-vę"]},{"key":"cup","rom":"shii","eng":"cup","rule":"the bound stem adds a vowel, ë or i; locative -yę; genitive in -y","nouns":13,"verbal":0,"obj":"shiië-ną","loc":"shiië-yę","gen":"shiiëy","sig":["vowel","same","-yę"]},{"key":"tooth","rom":"vą","eng":"tooth","rule":"the bound stem is the free form; ą becomes ę before the locative -yę; genitive in -y","nouns":1,"verbal":11,"obj":"vą-ną","loc":"vę-yę","gen":"vęy","sig":["same","changes","-yę"]},{"key":"child","rom":"böy","eng":"child","rule":"a lost consonant and a vowel return and the tone levels; locative -yę; genitive in -y","nouns":11,"verbal":0,"obj":"böyri-ną","loc":"böyri-yę","gen":"böyriy","sig":["consonant","same","-yę"]},{"key":"hunger","rom":"zhuu","eng":"hunger","rule":"the stem vowel changes (öy > aië, uu > aë, üü > eë, u > au); locative -vę; genitive in -v","nouns":10,"verbal":0,"obj":"zhaë-ną","loc":"zhaë-vę","gen":"zhaëv","sig":["shift","same","-vę"]},{"key":"ember","rom":"ǫgël","eng":"ember","rule":"the bound stem is the free form and ends in a consonant; locative -ę; the genitive has no ending","nouns":7,"verbal":0,"obj":"ǫgël-ną","loc":"ǫgël-ę","gen":"ǫgël","sig":["same","same","-ę"]},{"key":"fire","rom":"buuv","eng":"fire","rule":"the bound stem adds ë and the locative restores r and takes -ę; genitive in -r","nouns":6,"verbal":0,"obj":"buuvë-ną","loc":"buuvër-ę","gen":"buuvër","sig":["vowel","adds","-ę"]},{"key":"path","rom":"pim","eng":"path","rule":"the bound stem is the free form; before the locative -ę the vowel changes, and in yuu and zhöy a w returns; the genitive keeps the change","nouns":5,"verbal":0,"obj":"pim-ną","loc":"paim-ę","gen":"paim","sig":["same","changes","-ę"]},{"key":"passage","rom":"bątuh","eng":"passage","rule":"the tone levels; the locative restores ř (zh in the hill layer) and takes -ę; genitive in the same consonant","nouns":5,"verbal":0,"obj":"bątu-ną","loc":"bątuř-ę","gen":"bątuř","sig":["tone","adds","-ę"]}],"sigs":[{"sig":["consonant","same","-vę"],"n":41,"house":"mountain","like":[]},{"sig":["vowel","adds","-ę"],"n":6,"house":"fire","like":[]},{"sig":["vowel","same","-vę"],"n":24,"house":"wine","like":[]},{"sig":["glide","same","-vę"],"n":14,"house":"speech","like":[]},{"sig":["same","same","-vę"],"n":41,"house":"vessel","like":[]},{"sig":["consonant","same","-yę"],"n":11,"house":"child","like":[]},{"sig":["shift","same","-vę"],"n":10,"house":"hunger","like":[]},{"sig":["vowel","same","-yę"],"n":13,"house":"cup","like":[]},{"sig":["tone","adds","-ę"],"n":5,"house":"passage","like":[]},{"sig":["same","same","-yę"],"n":107,"house":"heed.vn","like":[]},{"sig":["glide","same","-yę"],"n":1,"house":"","like":[["nępwöy","master of a house"]]},{"sig":["shift","adds","-ę"],"n":1,"house":"","like":[["veh","voice"]]},{"sig":["same","changes","-ę"],"n":5,"house":"path","like":[]},{"sig":["same","same","-ę"],"n":7,"house":"ember","like":[]},{"sig":["consonant","same","-ę"],"n":1,"house":"","like":[["nah","vigil, night watch"]]},{"sig":["same","adds","-ę"],"n":17,"house":"mother","like":[]},{"sig":["vowel","changes","-ę"],"n":1,"house":"","like":[["dhöyw","daughter"]]},{"sig":["shift","changes","-yę"],"n":1,"house":"","like":[["nya","nose"]]},{"sig":["same","changes","-yę"],"n":12,"house":"tooth","like":[]},{"sig":["consonant","changes","-ę"],"n":2,"house":"","like":[["iwaih","widow"],["vaiq","evening"]]}],"person":["ancestor","aunt","baby","boy","bride","brother","chief","chieftain","child","cousin","craftsman","daughter","drinker","elder","enemy","farmer","father","friend","ghost","girl","god","goddess","grandfather","grandmother","guard","guest","guide","healer","heir","herdsman","hero","human","hunter","husband","judge","king","lady","listener","lord","maker","man","master","merchant","mistress","mother","neighbor","neighbour","nephew","niece","orphan","person","poet","pourer","priest","priestess","queen","sage","servant","shepherd","singer","sister","slave","smith","soldier","son","spirit","stranger","teacher","thief","trader","uncle","warrior","widow","wife","woman","worker"],"animal":["animal","ant","bear","beast","bee","bird","boar","bull","calf","cat","cow","crow","deer","dog","eagle","ewe","fish","fly","foal","fox","goat","hawk","horse","hound","lamb","mare","moth","mouse","owl","ox","pig","ram","rat","raven","sheep","snake","spider","wolf","worm"]}};
 </script>
 <script>
 (function () {
 'use strict';
 const C = PierianCore;
 C.setLexicon(DATA.lex);
+C.setHouses(DATA.houses);
 const LATE = new Map();
 for (const [v, g] of DATA.late) {
   const k = C.stripStress(v).normalize('NFC');
@@ -1823,6 +1965,7 @@ function readOne() {
     domain: domainSel.value,
     layer: $('#layer').value,
     stem: $('#stem').value,
+    animacy: $('#animacy').value,
     top: Math.max(1, Math.min(12, parseInt($('#top').value, 10) || 4)),
   };
 }
@@ -1835,7 +1978,13 @@ function writeOne(q) {
   $('#layer').value = LAYERS[q.layer] ? q.layer : 'both';
   $('#stem').value = ['o', 'a', 'i', 'u', 'n', 'root', 'as-is'].includes(q.stem) ? q.stem : '';
   $('#top').value = q.top || 4;
+  $('#animacy').value = ['animate', 'inanimate'].includes(q.animacy) ? q.animacy : '';
+  syncPos();
 }
+function syncPos() {
+  $('#animacy-field').hidden = document.querySelector('input[name=pos]:checked').value !== 'noun';
+}
+document.querySelectorAll('input[name=pos]').forEach(r => r.addEventListener('change', syncPos));
 function syncUrl(q) {
   const p = new URLSearchParams();
   p.set('root', q.root);
@@ -1844,6 +1993,7 @@ function syncUrl(q) {
   if (q.domain) p.set('domain', q.domain);
   if (q.layer !== 'both') p.set('layer', q.layer);
   if (q.stem) p.set('stem', q.stem);
+  if (q.pos === 'noun' && q.animacy) p.set('animacy', q.animacy);
   if (q.top !== 4) p.set('results', q.top);
   history.replaceState(null, '', location.pathname + '?' + p.toString());
 }
@@ -1879,6 +2029,49 @@ function clashes(c) {
 function lexLine(c, q) {
   return [romOf(c.stages[5]), c.stages[5], q.gloss, '*' + c.pie, C.LAYER[c.road], c.stem, c.score].join('\t');
 }
+// ------------------------------------------------------------------ declension of a noun
+const FORM_ROWS = [['free', 'pl', 'free form'], ['obj', 'plObj', 'object'], ['loc', 'plLoc', 'locative'], ['gen', 'plGen', 'old genitive']];
+const isAnimate = (animacy, gloss) => animacy === 'animate' || (animacy !== 'inanimate' && C.guessAnimate(gloss));
+const formCell = ipa => ipa ? `<td><strong>${esc(romOf(ipa))}</strong><span class="ipa">${esc(ipa)}</span></td>` : '<td class="none">none</td>';
+const serif = t => `<span class="serif">${esc(t)}</span>`;
+// keep endings such as -vę on one line
+const keepEndings = t => esc(t).replace(/(-[^\s;,.()]+)/g, '<span class="nw">$1</span>');
+function andList(xs) { return xs.length < 2 ? xs.join('') : xs.slice(0, -1).join(', ') + ' and ' + xs[xs.length - 1]; }
+function memberCount(x) {
+  const a = `${x.nouns} noun${x.nouns === 1 ? '' : 's'}`;
+  return x.verbal ? `${a} and ${x.verbal} verbal nouns` : a;
+}
+function houseLine(d, h) {
+  if (h.house) {
+    const x = h.house;
+    return `<p class="house"><strong>The ${esc(x.rom)} house</strong> (‘${esc(x.eng)}’, ${memberCount(x)}): `
+      + `<span class="rule">${keepEndings(x.rule)}. It declines like ${serif(x.rom)}, ${serif(x.obj)}, ${serif(x.loc)}.</span></p>`;
+  }
+  let why;
+  if (h.reason === 'plural') {
+    // the spelling does not tell every vowel apart, so show the sounds when the two are spelled alike
+    const same = romOf(d.pl) === romOf(h.expected);
+    const show = ipa => serif(romOf(ipa)) + (same ? ` <span class="ipa">${esc(ipa)}</span>` : '');
+    why = `its plural ${show(d.pl)} breaks the plural rules, which give ${show(h.expected)}`;
+  }
+  else if (h.reason === 'rare') why = `only ${andList(h.like.map(([r, g]) => serif(r) + ' ‘' + esc(g) + '’'))} ${h.like.length === 1 ? 'declines' : 'decline'} this way, and a house needs five nouns`;
+  else if (h.reason === 'merged') why = 'the locative ending has merged with the stem';
+  else why = 'no noun in the lexicon declines this way';
+  return `<p class="house orphan"><strong>An orphan</strong> (${serif('auv')}): <span class="rule">${why}.</span></p>`;
+}
+function renderDecl(c, q) {
+  const animate = isAnimate(q.animacy, q.gloss);
+  const d = C.declension(c, animate);
+  let h = '<div class="decl">' + houseLine(d, C.houseOf(d));
+  h += `<div class="table-wrap"><table class="decl"><thead><tr><td></td><th scope="col">Singular</th>${animate ? '<th scope="col">Plural</th>' : ''}</tr></thead><tbody>`;
+  for (const [s, p, name] of FORM_ROWS) h += `<tr><th scope="row">${name}</th>${formCell(d[s])}${animate ? formCell(d[p]) : ''}</tr>`;
+  h += '</tbody></table></div>';
+  if (!animate) {
+    h += `<p class="decl-note">No plural: only people and animals have one, and things are counted with a numeral, ${serif('maur')} ‘many’ or ${serif('vaih')} ‘all’.`
+      + (q.animacy ? '' : ' Set the animacy if this noun names a person or an animal.') + '</p>';
+  }
+  return h + '</div>';
+}
 function renderCand(c, i, q) {
   const best = i === 0;
   const v = c.stages[5];
@@ -1886,7 +2079,8 @@ function renderCand(c, i, q) {
   h += `<div class="formline"><span class="form">${v ? esc(romOf(v)) : '∅'} <span class="ipa">${esc(v || '')}</span></span></div>`;
   h += `<p class="meta">${esc(C.LAYER[c.road])}, ${esc(c.stem)}${c.centum ? ', palatal kept as a velar' : ''} <span class="score">score ${fmtScore(c.score)}</span>${best ? '<span class="badge">best fit</span>' : ''}</p>`;
   h += renderChain(c, best);
-  if (v) {
+  if (v && c.pos === 'noun') h += renderDecl(c, q);
+  else if (v) {
     h += '<dl class="forms">';
     if (c.pos === 'verb') {
       const p = C.verbParts(c.source_form, c.road);
@@ -1938,9 +2132,13 @@ function parseBatch(text) {
     const line = raw.trim();
     if (!line || line.startsWith('#')) continue;
     const parts = line.split(/\t|;|\|/).map(s => s.trim());
-    let pos = (parts[2] || 'noun').toLowerCase();
-    if (pos.startsWith('adj')) pos = 'adj'; else if (pos.startsWith('v')) pos = 'verb'; else pos = 'noun';
-    jobs.push({ root: parts[0], gloss: parts[1] || '', pos, domain: (parts[3] || '').toLowerCase() });
+    const cls = (parts[2] || 'noun').toLowerCase();
+    let pos = 'noun', animacy = '';
+    if (cls.startsWith('adj')) pos = 'adj';
+    else if (cls.startsWith('v')) pos = 'verb';
+    else if (/^(person|people|animal|anim)/.test(cls)) animacy = 'animate';
+    else if (/^(thing|inanim)/.test(cls)) animacy = 'inanimate';
+    jobs.push({ root: parts[0], gloss: parts[1] || '', pos, animacy, domain: (parts[3] || '').toLowerCase() });
   }
   return jobs;
 }
@@ -1961,24 +2159,32 @@ function runMany() {
     try { cands = C.build(j.root, { pos: j.pos, domain, roads: LAYERS[layer], gloss: j.gloss }).slice(0, top); }
     catch (e) { err = e.message; }
     if (err || !cands.length) {
-      rows += `<tr><td class="pie">*${esc(j.root)}</td><td>${esc(j.gloss)}</td><td>${POS_NAME[j.pos]}</td><td colspan="4">${err ? 'could not be derived' : 'no results'}</td></tr>`;
+      rows += `<tr><td class="pie">*${esc(j.root)}</td><td>${esc(j.gloss)}</td><td>${POS_NAME[j.pos]}</td><td colspan="5">${err ? 'could not be derived' : 'no results'}</td></tr>`;
       continue;
     }
     cands.forEach((c, k) => {
       const v = c.stages[5];
-      lastBatch.push([j.root, j.gloss, j.pos, domain, k + 1, romOf(v), v, c.stages[0], C.LAYER[c.road], c.stem, c.score]);
+      let house = '', forms = ['', '', '', '', '', '', ''];
+      if (j.pos === 'noun' && v) {
+        const d = C.declension(c, isAnimate(j.animacy, j.gloss));
+        const hh = C.houseOf(d);
+        house = hh.house ? hh.house.rom : 'orphan';
+        forms = ['obj', 'loc', 'gen', 'pl', 'plObj', 'plLoc', 'plGen'].map(f => d[f] ? romOf(d[f]) : '');
+      }
+      lastBatch.push([j.root, j.gloss, j.pos, domain, k + 1, romOf(v), v, c.stages[0], C.LAYER[c.road], c.stem, c.score, house, ...forms]);
       rows += `<tr class="${k ? 'alt' : ''}"><td class="pie">${k ? '' : '*' + esc(j.root)}</td><td>${k ? '' : esc(j.gloss)}</td><td>${k ? '' : POS_NAME[j.pos]}</td>`
-        + `<td class="rom">${esc(romOf(v))}</td><td class="ipa">${esc(v)}</td><td>${esc(C.LAYER[c.road])}</td><td>${fmtScore(c.score)}</td></tr>`;
+        + `<td class="rom">${esc(romOf(v))}</td><td class="ipa">${esc(v)}</td><td>${esc(C.LAYER[c.road])}</td><td class="${house === 'orphan' ? '' : 'serif'}">${esc(house)}</td><td>${fmtScore(c.score)}</td></tr>`;
     });
   }
   out.innerHTML = `<div class="results-head"><h2>${jobs.length} root${jobs.length === 1 ? '' : 's'}</h2><span class="actions">`
     + '<button type="button" class="small-btn" id="copy-tsv">Copy as a table</button><button type="button" class="small-btn" id="save-tsv">Download as TSV</button></span></div>'
-    + '<div class="table-wrap"><table class="batch"><thead><tr><th>PIE</th><th>Meaning</th><th>Class</th><th>Pierian</th><th>IPA</th><th>Layer</th><th>Score</th></tr></thead>'
+    + '<div class="table-wrap"><table class="batch"><thead><tr><th>PIE</th><th>Meaning</th><th>Class</th><th>Pierian</th><th>IPA</th><th>Layer</th><th>House</th><th>Score</th></tr></thead>'
     + `<tbody>${rows}</tbody></table></div>`
     + (odd.length ? `<p class="message">Some roots contain letters outside the PIE notation, which were passed through unchanged: <span class="serif">${esc(odd.join(', '))}</span>.</p>` : '');
 }
 function batchTsv() {
-  const head = ['root', 'meaning', 'class', 'domain', 'rank', 'romanized', 'ipa', 'early_pierian', 'layer', 'stem', 'score'];
+  const head = ['root', 'meaning', 'class', 'domain', 'rank', 'romanized', 'ipa', 'early_pierian', 'layer', 'stem', 'score',
+    'house', 'object', 'locative', 'genitive', 'plural', 'plural_object', 'plural_locative', 'plural_genitive'];
   return [head, ...lastBatch].map(r => r.join('\t')).join('\n') + '\n';
 }
 $('#form-many').addEventListener('submit', e => { e.preventDefault(); runMany(); });
@@ -2010,8 +2216,8 @@ $('#out').addEventListener('click', e => {
 const p = new URLSearchParams(location.search);
 const start = p.get('root')
   ? { root: p.get('root'), gloss: p.get('meaning') || '', pos: p.get('class') || 'noun', domain: p.get('domain') || '',
-      layer: p.get('layer') || 'both', stem: p.get('stem') || '', top: parseInt(p.get('results'), 10) || 4 }
-  : { root: 'bʰer-', gloss: 'carry', pos: 'verb', domain: '', layer: 'both', stem: '', top: 4 };
+      layer: p.get('layer') || 'both', stem: p.get('stem') || '', animacy: p.get('animacy') || '', top: parseInt(p.get('results'), 10) || 4 }
+  : { root: 'h₂ner-', gloss: 'man, warrior', pos: 'noun', domain: '', layer: 'both', stem: '', animacy: '', top: 4 };
 if (!POS_NAME[start.pos]) start.pos = 'noun';
 writeOne(start);
 runOne(readOne(), !!p.get('root'));
